@@ -20,6 +20,8 @@ use {
     std::{process::exit, sync::Arc},
 };
 
+pub mod utils;
+
 struct Config {
     commitment_config: CommitmentConfig,
     default_signer: Box<dyn Signer>,

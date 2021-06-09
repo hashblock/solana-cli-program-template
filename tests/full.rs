@@ -1,12 +1,15 @@
-//! Solana BigNumber
+//! solana-cli-program-template Integration Tests (full)
 //!
-//! Rust-based BigNumber provides safe math for arbitrarily large numbers.
-//! Primarily focues on BPF program usage, non-BPF is also supported by
-//! backing from the OpenSSL implementation
+//! Performs "batteries included" full test:
+//! 1. Configured solana-test-validator to load program
+//! 2. Creates/funds wallets and accounts from `keys` directory
+//! 3. Tests the Initialize, Mint, Transfer and Burn of key/value pairs
 
-use lazy_static::*;
-use solana_sdk::pubkey::Pubkey;
-use std::{path::PathBuf, str::FromStr};
+use {
+    lazy_static::*,
+    solana_sdk::pubkey::Pubkey,
+    std::{path::PathBuf, str::FromStr},
+};
 
 lazy_static! {
     pub static ref PROG_KEY: Pubkey =

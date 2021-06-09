@@ -7,6 +7,9 @@ publish = false
 
 [dependencies]
 clap = "2.33.3"
+lazy_static = "1.4.0"
+serde = { version = "1.0.125", features = ["derive"] }
+serde_yaml = "0.8.17"
 solana-clap-utils = "=1.7.0"
 solana-cli-config = "=1.7.0"
 solana-client = "=1.7.0"

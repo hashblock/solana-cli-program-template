@@ -1,0 +1,9 @@
+---
+version: 1.0.0
+registry:
+  User1:
+    wallet: keys/accounts/user1_wallet.json
+    account: keys/accounts/user1_account.json
+  User2:
+    wallet: keys/accounts/user2_wallet.json
+    account: keys/accounts/user2_account.json
