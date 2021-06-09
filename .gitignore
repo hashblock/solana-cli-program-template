@@ -1,4 +1,4 @@
 /target/
 /program/target/
 .ledger
-Cargo..lock
+Cargo.lock
