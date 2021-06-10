@@ -6,21 +6,14 @@
 //! 3. Tests the Initialize, Mint, Transfer and Burn of key/value pairs
 
 use {
-    lazy_static::*,
-    solana_sdk::pubkey::Pubkey,
+    cli_template::prelude::{get_account_for, PROG_KEY},
     std::{path::PathBuf, str::FromStr},
 };
 
-lazy_static! {
-    pub static ref PROG_KEY: Pubkey =
-        Pubkey::from_str(&"SampGgdt3wioaoMZhC6LTSbg4pnuvQnSfJpDYeuXQBv").unwrap();
-}
-
 #[cfg(test)]
 mod tests {
-
     use super::*;
-    use solana_sdk::commitment_config::CommitmentConfig;
+    use solana_sdk::{commitment_config::CommitmentConfig, signer::Signer};
     // use solana_client::rpc_cache::test;
     use solana_validator::test_validator::*;
     const LEDGER_PATH: &str = "./.ledger";
@@ -32,7 +25,7 @@ mod tests {
         std::env::set_var("BPF_OUT_DIR", PROG_PATH);
         let mut test_validator = TestValidatorGenesis::default();
         test_validator.ledger_path(LEDGER_PATH);
-        test_validator.add_program(PROG_NAME, *PROG_KEY);
+        test_validator.add_program(PROG_NAME, PROG_KEY.pubkey());
         test_validator
     }
 
@@ -44,14 +37,12 @@ mod tests {
         setup_validator()
     }
 
-
     #[test]
     fn test_initialization() {
-        println!("Made it here!");
-        let (test_validator, initial_keypair) = clean_ledger_setup_validator().start();
+        let (test_validator, _initial_keypair) = clean_ledger_setup_validator().start();
         let (rpc_client, _, _) = test_validator.rpc_client();
         let cc = CommitmentConfig::confirmed();
-        println!("Made past load");
+        let acc = get_account_for(&rpc_client, &PROG_KEY.pubkey(), cc);
+        assert!(acc.is_ok());
     }
-
 }

@@ -5,14 +5,13 @@
 //! 2. Faults in keys from file system as needed
 
 use {
-    crate::utils::load_keys_config_file,
+    super::load_keys_config_file,
     lazy_static::lazy_static,
     serde::{Deserialize, Serialize},
     solana_sdk::signature::{read_keypair_file, Keypair},
     std::{
         collections::HashMap,
-        error,
-        fs,
+        error, fs,
         path::{Path, PathBuf},
     },
 };
@@ -63,8 +62,7 @@ fn load_program_key() -> Keypair {
             Ok(f) => f,
             Err(_) => panic!(),
         }
-    }
-    else {
+    } else {
         panic!()
     }
 }
@@ -104,7 +102,7 @@ impl KeysYamlDB {
 
 // Initialize the keypairs hashmap
 lazy_static! {
-    static ref KEYS_DB: KeysDB = KeysDB::load();
+    pub static ref KEYS_DB: KeysDB = KeysDB::load();
 }
 
 #[derive(Debug)]
@@ -138,12 +136,10 @@ impl KeysDB {
                 let owner = self.keys_registry.get(&name).unwrap();
                 Ok((owner.get(WALLET).unwrap(), owner.get(ACCOUNT).unwrap()))
             }
-            false => {
-                Err(Box::<dyn error::Error>::from(format!(
-                    "could not find owner \"{}\". key in DB",
-                    name
-                )))
-            }
+            false => Err(Box::<dyn error::Error>::from(format!(
+                "could not find owner \"{}\". key in DB",
+                name
+            ))),
         }
     }
 
