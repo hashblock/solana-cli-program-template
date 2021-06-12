@@ -126,28 +126,6 @@ impl KeysDB {
     }
     }
 
-    /// Get a wallet and account keypair for name
-    pub fn wallet_and_account(
-        &self,
-        name: String,
-    ) -> Result<(&Keypair, &Keypair), Box<dyn error::Error>> {
-        match self.keys_registry.contains_key(&name) {
-            true => {
-                let owner = self.keys_registry.get(&name).unwrap();
-                Ok((owner.get(WALLET).unwrap(), owner.get(ACCOUNT).unwrap()))
-            }
-            false => Err(Box::<dyn error::Error>::from(format!(
-                "could not find owner \"{}\". key in DB",
-                name
-            ))),
-        }
-    }
-
-    /// Fetch a reference to the registry of keypairs
-    pub fn keys_registry(&self) -> &HashMap<String, HashMap<String, Keypair>> {
-        &self.keys_registry
-    }
-
     /// Loads the KEYS_DB keypairs from the configuration
     #[allow(dead_code)]
     fn load() -> Self {
@@ -166,6 +144,34 @@ impl KeysDB {
         }
         KeysDB {
             keys_registry: keys_reg,
+        }
+    }
+    /// Fetch a reference to the registry of keypairs
+    pub fn keys_registry(&self) -> &HashMap<String, HashMap<String, Keypair>> {
+        &self.keys_registry
+    }
+    /// Returns a vector of key owners
+    pub fn key_owners(&self) -> Vec<String> {
+        let mut result = Vec::<String>::new();
+        for x in self.keys_registry.keys() {
+            result.push(x.to_string());
+        }
+        result
+    }
+    /// Get a wallet and account keypair for name
+    pub fn wallet_and_account(
+        &self,
+        name: String,
+    ) -> Result<(&Keypair, &Keypair), Box<dyn error::Error>> {
+        match self.keys_registry.contains_key(&name) {
+            true => {
+                let owner = self.keys_registry.get(&name).unwrap();
+                Ok((owner.get(WALLET).unwrap(), owner.get(ACCOUNT).unwrap()))
+            }
+            false => Err(Box::<dyn error::Error>::from(format!(
+                "could not find owner \"{}\". key in DB",
+                name
+            ))),
         }
     }
 }
@@ -197,5 +203,12 @@ mod tests {
             assert!(user.contains_key(WALLET));
             assert!(user.contains_key(ACCOUNT));
         }
+    }
+
+    #[test]
+    fn test_list_key_holders() {
+        let key_owners = KEYS_DB.key_owners();
+        assert!(key_owners.contains(&"User1".to_string()));
+        assert!(key_owners.contains(&"User2".to_string()));
     }
 }
