@@ -44,7 +44,8 @@ impl Processor {
         if account_state.is_initialized() {
             return Err(SampleError::AlreadyInitializedState.into());
         }
-        let default_account_state = ProgramAccountState::default();
+        let mut default_account_state = ProgramAccountState::default();
+        default_account_state.set_initialized();
 
         ProgramAccountState::pack(default_account_state, &mut account_data).unwrap();
         Ok(())

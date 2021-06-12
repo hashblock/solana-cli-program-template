@@ -1,8 +1,8 @@
 //! account_state manages account data
 
+use crate::error::SampleError;
 use arrayref::{array_mut_ref, array_ref, array_refs, mut_array_refs};
 use borsh::{BorshDeserialize, BorshSerialize};
-use crate::error::SampleError;
 use solana_program::{
     program_error::ProgramError,
     program_pack::{IsInitialized, Pack, Sealed},
@@ -26,6 +26,10 @@ pub struct ProgramAccountState {
 }
 
 impl ProgramAccountState {
+    ///
+    pub fn set_initialized(&mut self) {
+        self.is_initialized = true;
+    }
     /// Adds a new key/value pair to the account
     pub fn add(&mut self, key: String, value: String) -> Result<(), SampleError> {
         match self.btree_storage.contains_key(&key) {
@@ -33,7 +37,7 @@ impl ProgramAccountState {
             false => {
                 self.btree_storage.insert(key, value);
                 Ok(())
-            },
+            }
         }
     }
     /// Removes a key from account and returns the keys value
@@ -70,7 +74,7 @@ impl Pack for ProgramAccountState {
         let data_len = keyval_store_data.len();
         data_len_dst[..].copy_from_slice(&(data_len as u32).to_le_bytes());
         data_dst[0..data_len].copy_from_slice(&keyval_store_data);
-        }
+    }
 
     /// Retrieve 'state' of account from account data area
     fn unpack_from_slice(src: &[u8]) -> Result<Self, ProgramError> {

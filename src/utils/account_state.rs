@@ -1,13 +1,11 @@
 //! @brief Account state access
 
-use solana_sdk::signer::Signer;
-
 use {
     crate::utils::account_utils::get_account_for,
     arrayref::*,
     borsh::BorshDeserialize,
     solana_client::rpc_client::RpcClient,
-    solana_sdk::{commitment_config::CommitmentConfig, signature::Keypair},
+    solana_sdk::{commitment_config::CommitmentConfig, signature::Keypair, signer::Signer},
     std::{collections::BTreeMap, error::Error},
 };
 
@@ -18,7 +16,7 @@ const BTREE_LENGTH: usize = 4;
 /// Storage for the serialized BTreeMap container
 const BTREE_STORAGE: usize = 1019;
 /// Sum of all account state lengths
-const ACCOUNT_STATE_SPACE: usize = INITIALIZED_BYTES + BTREE_LENGTH + BTREE_STORAGE;
+pub const ACCOUNT_STATE_SPACE: usize = INITIALIZED_BYTES + BTREE_LENGTH + BTREE_STORAGE;
 
 /// Unpacks the token state and returns serialized accumulator value
 #[allow(clippy::clippy::ptr_offset_with_cast)]
