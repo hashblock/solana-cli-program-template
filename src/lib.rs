@@ -6,5 +6,6 @@ pub mod prelude {
         account_state::*,
         account_utils::*,
         keys_db::{KEYS_DB, PROG_KEY},
+        Instructions,
     };
 }

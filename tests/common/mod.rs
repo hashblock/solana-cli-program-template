@@ -1,9 +1,9 @@
 //! @brief Common function for testing
 
-use cli_template::utils::account_state::ACCOUNT_STATE_SPACE;
-
 use {
-    cli_template::prelude::{get_account_for, load_account, load_wallet, KEYS_DB, PROG_KEY},
+    cli_template::prelude::{
+        get_account_for, load_account, load_wallet, ACCOUNT_STATE_SPACE, KEYS_DB, PROG_KEY,
+    },
     solana_client::rpc_client::RpcClient,
     solana_sdk::{commitment_config::CommitmentConfig, signature::Keypair, signer::Signer},
     solana_validator::test_validator::TestValidatorGenesis,
@@ -55,6 +55,7 @@ pub fn load_user_wallets<'a>(
 /// Batch load all user wallets and accounts
 pub fn load_and_initialize_accounts<'a>(
     rpc_client: &RpcClient,
+    initialize_instruction: u8,
     commitment_config: CommitmentConfig,
 ) -> Vec<&'a Keypair> {
     let mut accounts = Vec::<&Keypair>::new();
@@ -70,7 +71,7 @@ pub fn load_and_initialize_accounts<'a>(
                 wallet,
                 &PROG_KEY.pubkey(),
                 ACCOUNT_STATE_SPACE as u64,
-                0,
+                initialize_instruction,
                 commitment_config,
             );
             assert!(result.is_ok());

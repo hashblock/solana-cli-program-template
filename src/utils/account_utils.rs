@@ -96,14 +96,14 @@ fn new_account(
     account_pair: &dyn Signer,
     program_owner: &Pubkey,
     state_space: u64,
-    initialize_instruction: u8,
+    initialize_instruction_id: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let account_lamports = rpc_client
         .get_minimum_balance_for_rent_exemption(state_space as usize)
         .unwrap();
 
-    let instruction_data = vec![vec![initialize_instruction]];
+    let instruction_data = vec![vec![initialize_instruction_id]];
 
     let mut transaction = Transaction::new_with_payer(
         &[
@@ -172,6 +172,8 @@ pub fn load_account(
     Ok(())
 }
 
+/// Submits the program instruction as per the
+/// instruction definition
 pub fn submit_transaction(
     rpc_client: &RpcClient,
     wallet_signer: &dyn Signer,
@@ -194,24 +196,75 @@ pub fn submit_transaction(
     Ok(())
 }
 
+/// Perform a mint transaction consisting of a key/value pair
 pub fn mint_transaction(
     rpc_client: &RpcClient,
     account: &Pubkey,
     wallet_signer: &dyn Signer,
     mint_key: &str,
     mint_value: &str,
+    mint_instruction_id: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let program_chunk = vec![
-        vec![1],
+    let data = vec![
+        vec![mint_instruction_id],
         mint_key.try_to_vec().unwrap(),
         mint_value.try_to_vec().unwrap(),
     ];
     let instruction = Instruction::new_with_borsh(
         PROG_KEY.pubkey(),
-        &program_chunk,
+        &data,
         vec![
             AccountMeta::new(*account, false),
+            AccountMeta::new(wallet_signer.pubkey(), true),
+        ],
+    );
+    submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)?;
+    Ok(())
+}
+
+/// Transfer a minted key/value from one account to another account
+pub fn transfer_instruction(
+    rpc_client: &RpcClient,
+    account_from: &Pubkey,
+    account_to: &Pubkey,
+    wallet_signer: &dyn Signer,
+    transfer_key: &str,
+    transfer_instruction_id: u8,
+    commitment_config: CommitmentConfig,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let data = vec![
+        vec![transfer_instruction_id],
+        transfer_key.try_to_vec().unwrap(),
+    ];
+    let instruction = Instruction::new_with_borsh(
+        PROG_KEY.pubkey(),
+        &data,
+        vec![
+            AccountMeta::new(*account_from, false),
+            AccountMeta::new(*account_to, false),
+            AccountMeta::new(wallet_signer.pubkey(), true),
+        ],
+    );
+    submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)?;
+    Ok(())
+}
+
+/// Burn, delete, the key/value from the owning account
+pub fn burn_instruction(
+    rpc_client: &RpcClient,
+    account_from: &Pubkey,
+    wallet_signer: &dyn Signer,
+    burn_key: &str,
+    burn_instruction_id: u8,
+    commitment_config: CommitmentConfig,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let data = vec![vec![burn_instruction_id], burn_key.try_to_vec().unwrap()];
+    let instruction = Instruction::new_with_borsh(
+        PROG_KEY.pubkey(),
+        &data,
+        vec![
+            AccountMeta::new(*account_from, false),
             AccountMeta::new(wallet_signer.pubkey(), true),
         ],
     );
