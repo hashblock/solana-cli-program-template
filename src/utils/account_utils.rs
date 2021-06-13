@@ -1,6 +1,8 @@
 //! @brief Account utilities
 
 use {
+    crate::utils::keys_db::PROG_KEY,
+    borsh::*,
     solana_client::rpc_client::RpcClient,
     solana_sdk::{
         account::Account,
@@ -167,5 +169,52 @@ pub fn load_account(
         )
         .unwrap(),
     };
+    Ok(())
+}
+
+pub fn submit_transaction(
+    rpc_client: &RpcClient,
+    wallet_signer: &dyn Signer,
+    instruction: Instruction,
+    commitment_config: CommitmentConfig,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut transaction =
+        Transaction::new_unsigned(Message::new(&[instruction], Some(&wallet_signer.pubkey())));
+    let (recent_blockhash, _fee_calculator) = rpc_client
+        .get_recent_blockhash()
+        .map_err(|err| format!("error: unable to get recent blockhash: {}", err))
+        .unwrap();
+    transaction
+        .try_sign(&vec![wallet_signer], recent_blockhash)
+        .map_err(|err| format!("error: failed to sign transaction: {}", err))
+        .unwrap();
+    let _signature = rpc_client
+        .send_and_confirm_transaction_with_spinner_and_commitment(&transaction, commitment_config)
+        .map_err(|err| format!("error: send transaction: {}", err));
+    Ok(())
+}
+
+pub fn mint_transaction(
+    rpc_client: &RpcClient,
+    account: &Pubkey,
+    wallet_signer: &dyn Signer,
+    mint_key: &str,
+    mint_value: &str,
+    commitment_config: CommitmentConfig,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let program_chunk = vec![
+        vec![1],
+        mint_key.try_to_vec().unwrap(),
+        mint_value.try_to_vec().unwrap(),
+    ];
+    let instruction = Instruction::new_with_borsh(
+        PROG_KEY.pubkey(),
+        &program_chunk,
+        vec![
+            AccountMeta::new(*account, false),
+            AccountMeta::new(wallet_signer.pubkey(), true),
+        ],
+    );
+    submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)?;
     Ok(())
 }

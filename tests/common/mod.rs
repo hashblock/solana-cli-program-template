@@ -40,16 +40,19 @@ pub fn load_user_wallets<'a>(
     let mut wallets = Vec::<&Keypair>::new();
     for holder in KEYS_DB.key_owners() {
         let (wallet, _account) = KEYS_DB.wallet_and_account(holder.clone()).unwrap();
+        // May already exist
         if let Some(_account) = get_account_for(rpc_client, &wallet.pubkey(), commitment_config) {
-            panic!()
+            wallets.push(wallet);
+        } else {
+            let result = load_wallet(&rpc_client, wallet, funding_source, commitment_config);
+            assert!(result.is_ok());
+            wallets.push(wallet);
         }
-        let result = load_wallet(&rpc_client, wallet, funding_source, commitment_config);
-        assert!(result.is_ok());
-        wallets.push(wallet);
     }
     wallets
 }
 
+/// Batch load all user wallets and accounts
 pub fn load_and_initialize_accounts<'a>(
     rpc_client: &RpcClient,
     commitment_config: CommitmentConfig,
@@ -57,20 +60,22 @@ pub fn load_and_initialize_accounts<'a>(
     let mut accounts = Vec::<&Keypair>::new();
     for holder in KEYS_DB.key_owners() {
         let (wallet, account) = KEYS_DB.wallet_and_account(holder.clone()).unwrap();
+        // May already exist
         if let Some(_account) = get_account_for(rpc_client, &account.pubkey(), commitment_config) {
-            panic!()
+            accounts.push(account);
+        } else {
+            let result = load_account(
+                &rpc_client,
+                account,
+                wallet,
+                &PROG_KEY.pubkey(),
+                ACCOUNT_STATE_SPACE as u64,
+                0,
+                commitment_config,
+            );
+            assert!(result.is_ok());
+            accounts.push(account);
         }
-        let result = load_account(
-            &rpc_client,
-            account,
-            wallet,
-            &PROG_KEY.pubkey(),
-            ACCOUNT_STATE_SPACE as u64,
-            0,
-            commitment_config,
-        );
-        assert!(result.is_ok());
-        accounts.push(account);
     }
     accounts
 }

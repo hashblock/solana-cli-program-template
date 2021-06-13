@@ -39,15 +39,18 @@ impl Processor {
         let account_info_iter = &mut accounts.iter();
         let program_account = next_account_info(account_info_iter)?;
         let mut account_data = program_account.data.borrow_mut();
-        let account_state = ProgramAccountState::unpack_unchecked(&account_data)?;
-
+        // Just using unpack will check to see if initialized and will
+        // fail if not
+        let mut account_state = ProgramAccountState::unpack_unchecked(&account_data)?;
+        // Where this is a logic error in trying to initialize the same
+        // account more than once
         if account_state.is_initialized() {
             return Err(SampleError::AlreadyInitializedState.into());
+        } else {
+            account_state.set_initialized();
         }
-        let mut default_account_state = ProgramAccountState::default();
-        default_account_state.set_initialized();
 
-        ProgramAccountState::pack(default_account_state, &mut account_data).unwrap();
+        ProgramAccountState::pack(account_state, &mut account_data).unwrap();
         Ok(())
     }
     /// Mint a key/pair to the programs account, which is the first in accounts
@@ -59,7 +62,8 @@ impl Processor {
         let account_info_iter = &mut accounts.iter();
         let program_account = next_account_info(account_info_iter)?;
         let mut account_data = program_account.data.borrow_mut();
-        let mut account_state = ProgramAccountState::unpack_unchecked(&account_data)?;
+        // Unpacking an uninitialized account state will fail
+        let mut account_state = ProgramAccountState::unpack(&account_data)?;
         account_state.add(key, value)?;
         ProgramAccountState::pack(account_state, &mut account_data)?;
         Ok(())
@@ -71,11 +75,11 @@ impl Processor {
         // Transfer from this account
         let from_program_account = next_account_info(account_info_iter)?;
         let mut from_account_data = from_program_account.data.borrow_mut();
-        let mut from_account_state = ProgramAccountState::unpack_unchecked(&from_account_data)?;
+        let mut from_account_state = ProgramAccountState::unpack(&from_account_data)?;
         // To this account
         let to_program_account = next_account_info(account_info_iter)?;
         let mut to_account_data = to_program_account.data.borrow_mut();
-        let mut to_account_state = ProgramAccountState::unpack_unchecked(&to_account_data)?;
+        let mut to_account_state = ProgramAccountState::unpack(&to_account_data)?;
         // Transfer the goods
         match from_account_state.remove(&key) {
             Ok(value) => {
