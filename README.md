@@ -3,14 +3,14 @@
 2. `cargo run`
 
 ## About
-`solana-cli-template` is a sample app demonstrating the creation of a minimal CLI application written in Rust to interact with Solana.
+`solana-cli-program template` is a sample app demonstrating the creation of a minimal CLI application written in Rust to interact with Solana.
 It provides three pieces of functionality:
 
 - `ping`: Creates a transaction sending 0 SOL from the signer's account to the signer's account. Returns the signature of the transaction.
 - `balance`: Returns the account's balance.
 - `help`: Tips for using the app. This is an off-chain operation.
 
-## Local step-by-step
+## Running locally step-by-step
 1. Prepare account:
   - Start a local node: run `solana-test-validator`.
   - Generate a keypair: `solana-keygen new -o test.json`.
@@ -33,11 +33,11 @@ It provides three pieces of functionality:
 5. Run help for the complete list of options:
   ```
   $ cargo run -- --help
-  cli-template 0.1.0
+  cli-program-template 0.1.0
 
 
   USAGE:
-      cli-template [FLAGS] [OPTIONS] <SUBCOMMAND>
+      cli-program-template [FLAGS] [OPTIONS] <SUBCOMMAND>
 
   FLAGS:
       -h, --help       Prints help information

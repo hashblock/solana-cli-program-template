@@ -5,13 +5,12 @@
 //! 2. Creates/funds wallets and accounts from `keys` directory
 //! 3. Tests the Initialize, Mint, Transfer and Burn of key/value pairs
 
-use cli_template::prelude::{burn_instruction, transfer_instruction};
-
 mod common;
 
 use {
-    cli_template::prelude::{
-        get_account_for, mint_transaction, unpack_account_data, Instructions, KEYS_DB, PROG_KEY,
+    cli_program_template::prelude::{
+        burn_instruction, get_account_for, mint_transaction, transfer_instruction,
+        unpack_account_data, Instructions, KEYS_DB, PROG_KEY,
     },
     common::{clean_ledger_setup_validator, load_and_initialize_accounts, load_user_wallets},
     solana_sdk::{commitment_config::CommitmentConfig, signer::Signer},

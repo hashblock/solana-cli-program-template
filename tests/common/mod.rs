@@ -1,7 +1,7 @@
 //! @brief Common function for testing
 
 use {
-    cli_template::prelude::{
+    cli_program_template::prelude::{
         get_account_for, load_account, load_wallet, ACCOUNT_STATE_SPACE, KEYS_DB, PROG_KEY,
     },
     solana_client::rpc_client::RpcClient,
