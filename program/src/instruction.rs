@@ -1,8 +1,8 @@
 //! instruction Contains the main ProgramInstruction enum
 
-use crate::error::SampleError;
-use borsh::BorshDeserialize;
-use solana_program::{msg, program_error::ProgramError};
+use {
+    crate::error::SampleError, borsh::BorshDeserialize, solana_program::program_error::ProgramError,
+};
 
 #[derive(Debug, PartialEq)]
 /// All custom program instructions
@@ -17,11 +17,9 @@ impl ProgramInstruction {
     /// Unpack inbound buffer to associated Instruction
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
         let block = Vec::<Vec<u8>>::try_from_slice(input).unwrap();
-        msg!("Instruction data {:?}", block);
-        let header = &block[0];
-        msg!("Header {:?}", header);
-        let instruction = header[0];
-        msg!("Instruction {:?}", instruction);
+        let instruction = &block[0][0];
+        // let header = &block[0];
+        // let instruction = header[0];
         match instruction {
             0 => Ok(ProgramInstruction::InitializeAccount),
             1 => Ok(Self::MintToAccount {
@@ -36,24 +34,5 @@ impl ProgramInstruction {
             }),
             _ => Err(SampleError::DeserializationFailure.into()),
         }
-        // match String::try_from_slice(&block[1]) {
-        //     Ok(key) => {
-        //         Ok(match instruction {
-        //             0 => ProgramInstruction::InitializeAccount,
-        //             // Mint expects two strings (key, value)
-        //             1 => Self::MintToAccount {
-        //                 key,
-        //                 value: String::try_from_slice(&block[2]).unwrap(),
-        //             },
-        //             2 => Self::TransferBetweenAccounts { key },
-        //             3 => Self::BurnFromAccount { key },
-        //             _ => {
-        //                 msg!("Attempting unknown instruction {}", instruction);
-        //                 unreachable!()
-        //             }
-        //         })
-        //     }
-        //     Err(_) => Err(SampleError::DeserializationFailure.into()),
-        // }
     }
 }

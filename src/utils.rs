@@ -6,7 +6,7 @@ pub mod account_state;
 pub mod account_utils;
 pub mod keys_db;
 
-/// Instructions that program usess
+/// Instructions that program uses
 pub enum Instructions {
     InitializeAccount = 0,
     FreeMint = 1,

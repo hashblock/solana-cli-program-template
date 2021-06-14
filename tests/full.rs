@@ -17,7 +17,7 @@ use {
 };
 
 #[test]
-fn test_initialization() {
+fn test_initialization_pass() {
     let (test_validator, _initial_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
@@ -26,7 +26,7 @@ fn test_initialization() {
 }
 
 #[test]
-fn test_wallet_loading() {
+fn test_wallet_loading_pass() {
     let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
@@ -35,7 +35,7 @@ fn test_wallet_loading() {
 }
 
 #[test]
-fn test_wallet_and_account_initialization() {
+fn test_wallet_and_account_initialization_pass() {
     let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
@@ -51,7 +51,7 @@ fn test_wallet_and_account_initialization() {
 }
 
 #[test]
-fn test_load_mint_transfer_burn() {
+fn test_load_mint_transfer_burn_pass() {
     let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
