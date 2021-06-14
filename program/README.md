@@ -7,3 +7,9 @@ In it, the following is demonstrated:
 3. Account state (data) reading and writing
 4. Serializing and deserializing to and from account states
 5. Custom errors
+
+## Building
+```
+cd program
+cargo build-bpf
+```
