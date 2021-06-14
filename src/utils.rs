@@ -12,6 +12,9 @@ pub enum Instructions {
     FreeMint = 1,
     FreeTransfer = 2,
     FreeBurn = 3,
+    MintWithFee = 4,
+    TransferWithFee = 5,
+    BurnWithFee = 6,
 }
 
 /// Loads a yaml file

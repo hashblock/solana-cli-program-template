@@ -1,5 +1,5 @@
-pub mod error;
 pub mod account_state;
+pub mod error;
 pub mod instruction;
 pub mod processor;
 pub use solana_program;

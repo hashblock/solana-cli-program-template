@@ -1,6 +1,9 @@
 ---
-version: 1.0.0
+version: 1.5.0
 registry:
+  Service:
+    wallet: keys/accounts/service_wallet.json
+    account: keys/accounts/service_account.json
   User1:
     wallet: keys/accounts/user1_wallet.json
     account: keys/accounts/user1_account.json

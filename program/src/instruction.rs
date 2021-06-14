@@ -11,6 +11,9 @@ pub enum ProgramInstruction {
     MintToAccount { key: String, value: String },
     TransferBetweenAccounts { key: String },
     BurnFromAccount { key: String },
+    MintToAccountWithFee { key: String, value: String },
+    TransferBetweenAccountsWithFee { key: String },
+    BurnFromAccountWithFee { key: String },
 }
 
 impl ProgramInstruction {
@@ -30,6 +33,16 @@ impl ProgramInstruction {
                 key: String::try_from_slice(&block[1]).unwrap(),
             }),
             3 => Ok(Self::BurnFromAccount {
+                key: String::try_from_slice(&block[1]).unwrap(),
+            }),
+            4 => Ok(Self::MintToAccountWithFee {
+                key: String::try_from_slice(&block[1]).unwrap(),
+                value: String::try_from_slice(&block[2]).unwrap(),
+            }),
+            5 => Ok(Self::TransferBetweenAccountsWithFee {
+                key: String::try_from_slice(&block[1]).unwrap(),
+            }),
+            6 => Ok(Self::BurnFromAccountWithFee {
                 key: String::try_from_slice(&block[1]).unwrap(),
             }),
             _ => Err(SampleError::DeserializationFailure.into()),

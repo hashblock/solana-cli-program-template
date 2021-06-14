@@ -16,6 +16,7 @@ pub enum SampleError {
     AlreadyInitializedState,
     KeyNotFoundInAccount,
     KeyAlreadyExists,
+    InsufficientFundsForTransaction,
     UnknownError,
 }
 
@@ -39,6 +40,9 @@ impl fmt::Display for SampleError {
             SampleError::KeyNotFoundInAccount => f.write_str("Account does not contain key"),
             SampleError::KeyAlreadyExists => f.write_str("Account already contains key"),
             SampleError::UnknownError => f.write_str("Unknown error condiiton"),
+            SampleError::InsufficientFundsForTransaction => {
+                f.write_str("Not enough funds to process transaction")
+            }
         }
     }
 }
@@ -55,6 +59,9 @@ impl PrintProgramError for SampleError {
             SampleError::KeyNotFoundInAccount => println!("Account does not contain key"),
             SampleError::KeyAlreadyExists => println!("Account already contains key"),
             SampleError::UnknownError => println!("Unknown error condiiton"),
+            SampleError::InsufficientFundsForTransaction => {
+                println!("Not enough funds to process transaction")
+            }
         }
     }
 }

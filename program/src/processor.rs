@@ -13,7 +13,14 @@ use solana_program::{
     program_pack::{IsInitialized, Pack},
     pubkey::Pubkey,
 };
+
 pub struct Processor {}
+
+enum SampleServiceFees {
+    Minting = 10,
+    Transfering = 30,
+    Burning = 15,
+}
 
 impl Processor {
     /// Checks each tracking account to confirm it is owned by our program
@@ -31,6 +38,23 @@ impl Processor {
                 return Err(ProgramError::IncorrectProgramId);
             }
         }
+        Ok(())
+    }
+
+    /// Extracts the service fee from the user account and
+    /// credits the service account
+    fn charge_service_fee(
+        user_account: &AccountInfo,
+        service_account: &AccountInfo,
+        amount: u64,
+    ) -> ProgramResult {
+        // If tracking can not afford transaction fee
+        if **user_account.try_borrow_lamports()? < amount {
+            return Err(SampleError::InsufficientFundsForTransaction.into());
+        }
+        // Debit user and credit service
+        **user_account.try_borrow_mut_lamports()? -= amount;
+        **service_account.try_borrow_mut_lamports()? += amount;
         Ok(())
     }
 
@@ -68,6 +92,22 @@ impl Processor {
         ProgramAccountState::pack(account_state, &mut account_data)?;
         Ok(())
     }
+    /// Mint a key/value pair extracting a service fee for the effort
+    fn mint_keypair_to_account_with_fee(
+        accounts: &[AccountInfo],
+        key: String,
+        value: String,
+    ) -> ProgramResult {
+        // Charge for service
+        Self::charge_service_fee(
+            &accounts[0],
+            &accounts[1],
+            SampleServiceFees::Minting as u64,
+        )?;
+        // Invoke the actual mint
+        Self::mint_keypair_to_account(accounts, key, value)?;
+        Ok(())
+    }
     /// Transfer a key/pair from one program account to another
     /// "from" account is first and "to" account is second  in accounts
     fn transfer_keypair_to_account(accounts: &[AccountInfo], key: String) -> ProgramResult {
@@ -91,6 +131,27 @@ impl Processor {
             Err(e) => Err(e.into()),
         }
     }
+    /// Transfer key/value pair extracting a service fee for the effort
+    fn transfer_keypair_to_account_with_fee(
+        accounts: &[AccountInfo],
+        key: String,
+    ) -> ProgramResult {
+        // Cost to "from account"
+        Self::charge_service_fee(
+            &accounts[0],
+            &accounts[2],
+            SampleServiceFees::Transfering as u64,
+        )?;
+        // Cost to "to account"
+        Self::charge_service_fee(
+            &accounts[1],
+            &accounts[2],
+            SampleServiceFees::Minting as u64,
+        )?;
+        // Invoke the actual transfer
+        Self::transfer_keypair_to_account(accounts, key)?;
+        Ok(())
+    }
     /// Burn a key/pair from the programs account, which is the first in accounts
     fn burn_keypair_from_account(accounts: &[AccountInfo], key: String) -> ProgramResult {
         let account_info_iter = &mut accounts.iter();
@@ -105,7 +166,18 @@ impl Processor {
             Err(e) => Err(e.into()),
         }
     }
-
+    /// Burn a key/pair extracting a service fee for the effort
+    fn burn_keypair_from_account_with_fee(accounts: &[AccountInfo], key: String) -> ProgramResult {
+        // Charge for service
+        Self::charge_service_fee(
+            &accounts[0],
+            &accounts[1],
+            SampleServiceFees::Burning as u64,
+        )?;
+        // Invoke the actual burn
+        Self::burn_keypair_from_account(accounts, key)?;
+        Ok(())
+    }
     /// Main processing entry point dispatches to specific
     /// instruction handlers
     pub fn process(
@@ -130,6 +202,15 @@ impl Processor {
             }
             ProgramInstruction::BurnFromAccount { key } => {
                 Self::burn_keypair_from_account(accounts, key)
+            }
+            ProgramInstruction::MintToAccountWithFee { key, value } => {
+                Self::mint_keypair_to_account_with_fee(accounts, key, value)
+            }
+            ProgramInstruction::TransferBetweenAccountsWithFee { key } => {
+                Self::transfer_keypair_to_account_with_fee(accounts, key)
+            }
+            ProgramInstruction::BurnFromAccountWithFee { key } => {
+                Self::burn_keypair_from_account_with_fee(accounts, key)
             }
         }
     }

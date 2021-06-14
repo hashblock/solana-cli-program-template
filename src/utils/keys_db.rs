@@ -188,13 +188,18 @@ mod tests {
     }
     #[test]
     fn test_keys_config_db_load() {
-        assert_eq!("1.0.0", KEYS_YAML_DB.version());
+        assert_eq!("1.5.0", KEYS_YAML_DB.version());
     }
 
     #[test]
     fn test_keys_keypair_load() {
+        assert!(KEYS_DB.keys_registry().contains_key("Service"));
         assert!(KEYS_DB.keys_registry().contains_key("User1"));
         assert!(KEYS_DB.keys_registry().contains_key("User2"));
+        if let Some(user) = KEYS_DB.keys_registry().get("Service") {
+            assert!(user.contains_key(WALLET));
+            assert!(user.contains_key(ACCOUNT));
+        }
         if let Some(user) = KEYS_DB.keys_registry().get("User1") {
             assert!(user.contains_key(WALLET));
             assert!(user.contains_key(ACCOUNT));
@@ -208,6 +213,7 @@ mod tests {
     #[test]
     fn test_list_key_holders() {
         let key_owners = KEYS_DB.key_owners();
+        assert!(key_owners.contains(&"Service".to_string()));
         assert!(key_owners.contains(&"User1".to_string()));
         assert!(key_owners.contains(&"User2".to_string()));
     }
