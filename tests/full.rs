@@ -241,6 +241,18 @@ fn test_mint_transfer_burn_fail() {
     let (wallet1, account1) = KEYS_DB.wallet_and_account(user1).unwrap();
     let (wallet2, account2) = KEYS_DB.wallet_and_account(user2).unwrap();
 
+    // Fail empty accounts
+    let mint_result = mint_transaction(
+        &rpc_client,
+        &[],
+        wallet1,
+        &mint_key,
+        &mint_value,
+        Instructions::FreeMint as u8,
+        cc,
+    );
+    assert!(mint_result.is_err());
+
     // Do mint to User1
     let mint_result = mint_transaction(
         &rpc_client,
