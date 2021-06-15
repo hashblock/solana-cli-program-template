@@ -221,3 +221,84 @@ fn test_load_mint_transfer_burn_with_fee_pass() {
         - service_pre_tx_lamport;
     assert!(service_credited == 15);
 }
+
+#[test]
+fn test_mint_transfer_burn_fail() {
+    let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
+    let (rpc_client, _, _) = test_validator.rpc_client();
+    let cc = CommitmentConfig::confirmed();
+    let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
+    assert_eq!(loaded_wallets.len(), 3);
+    let initialized_accounts =
+        load_and_initialize_accounts(&rpc_client, Instructions::InitializeAccount as u8, cc);
+    assert_eq!(initialized_accounts.len(), 3);
+    // Setup key/value data and get accounts used in transactions
+    let user1 = String::from("User1");
+    let user2 = String::from("User2");
+    let mint_key = String::from("test_key_1");
+    let mint_value = String::from("value for test_key_1");
+    let bad_key = String::from("bad_key_1");
+    let (wallet1, account1) = KEYS_DB.wallet_and_account(user1).unwrap();
+    let (wallet2, account2) = KEYS_DB.wallet_and_account(user2).unwrap();
+
+    // Do mint to User1
+    let mint_result = mint_transaction(
+        &rpc_client,
+        &[
+            AccountMeta::new(account1.pubkey(), false),
+            AccountMeta::new(wallet1.pubkey(), true),
+        ],
+        wallet1,
+        &mint_key,
+        &mint_value,
+        Instructions::FreeMint as u8,
+        cc,
+    );
+    assert!(mint_result.is_ok());
+    let (_, btree) = unpack_account_data(&rpc_client, account1, cc).unwrap();
+    assert!(btree.contains_key(&mint_key));
+
+    // Attempt to mint something already minted for User1
+    let mint_result = mint_transaction(
+        &rpc_client,
+        &[
+            AccountMeta::new(account1.pubkey(), false),
+            AccountMeta::new(wallet1.pubkey(), true),
+        ],
+        wallet1,
+        &mint_key,
+        &mint_value,
+        Instructions::FreeMint as u8,
+        cc,
+    );
+    assert!(mint_result.is_err());
+
+    // Attempt to transfer something that does exist
+    let transfer_result = transfer_instruction(
+        &rpc_client,
+        &[
+            AccountMeta::new(account1.pubkey(), false),
+            AccountMeta::new(account2.pubkey(), false),
+            AccountMeta::new(wallet1.pubkey(), true),
+        ],
+        wallet1,
+        &bad_key,
+        Instructions::FreeTransfer as u8,
+        cc,
+    );
+    assert!(transfer_result.is_err());
+
+    // Attempt to burn something that does not exist
+    let burn_result = burn_instruction(
+        &rpc_client,
+        &[
+            AccountMeta::new(account2.pubkey(), false),
+            AccountMeta::new(wallet2.pubkey(), true),
+        ],
+        wallet2,
+        &mint_key,
+        Instructions::FreeBurn as u8,
+        cc,
+    );
+    assert!(burn_result.is_err());
+}

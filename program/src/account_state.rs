@@ -4,6 +4,7 @@ use crate::error::SampleError;
 use arrayref::{array_mut_ref, array_ref, array_refs, mut_array_refs};
 use borsh::{BorshDeserialize, BorshSerialize};
 use solana_program::{
+    entrypoint::ProgramResult,
     program_error::ProgramError,
     program_pack::{IsInitialized, Pack, Sealed},
 };
@@ -31,9 +32,9 @@ impl ProgramAccountState {
         self.is_initialized = true;
     }
     /// Adds a new key/value pair to the account
-    pub fn add(&mut self, key: String, value: String) -> Result<(), SampleError> {
+    pub fn add(&mut self, key: String, value: String) -> ProgramResult {
         match self.btree_storage.contains_key(&key) {
-            true => Err(SampleError::KeyAlreadyExists),
+            true => Err(SampleError::KeyAlreadyExists.into()),
             false => {
                 self.btree_storage.insert(key, value);
                 Ok(())

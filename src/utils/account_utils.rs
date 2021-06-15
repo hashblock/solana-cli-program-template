@@ -190,10 +190,18 @@ pub fn submit_transaction(
         .try_sign(&vec![wallet_signer], recent_blockhash)
         .map_err(|err| format!("error: failed to sign transaction: {}", err))
         .unwrap();
-    let _signature = rpc_client
+
+    match rpc_client
         .send_and_confirm_transaction_with_spinner_and_commitment(&transaction, commitment_config)
-        .map_err(|err| format!("error: send transaction: {}", err));
-    Ok(())
+    {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e.into()),
+    }
+
+    // let signature = rpc_client
+    //     .send_and_confirm_transaction_with_spinner_and_commitment(&transaction, commitment_config)
+    //     .map_err(|err| format!("error: send transaction: {}", err));
+    // Ok(())
 }
 
 /// Perform a mint transaction consisting of a key/value pair
