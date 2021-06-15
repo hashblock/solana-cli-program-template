@@ -15,7 +15,7 @@ cd ..
 ```
 ## Scenarios
 The following describe the individual modules and intent:
-1. `tests/full.rs` (a.k.a. Full) - A "no-battery-required" integration tests that automatically loads `solana-test-validator`, the sample programs and any external keys. Each tests included in `full.rs`, in effect, run with a new clean *ledger* each time it is run.
+1. `tests/full.rs` (a.k.a. Full) - A "no-battery-required" integration tests that automatically loads `solana-test-validator`, the sample programs and any external keys. Each tests included in `full.rs`, in effect, run with a new clean *ledger* each time a test is run. Includes both positive and negative testing.
 
 ## Invocations
 You invoke all tests from the repo root directory:
