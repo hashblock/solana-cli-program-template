@@ -1,9 +1,10 @@
 //! solana-cli-program-template Integration Tests (full)
 //!
 //! Performs "batteries included" full test:
-//! 1. Configured solana-test-validator to load program
+//! 1. Configures solana-test-validator to load program and starts the validator
 //! 2. Creates/funds wallets and accounts from `keys` directory
-//! 3. Tests the Initialize, Mint, Transfer and Burn of key/value pairs
+//! 3. Tests for sucessful Initialize, Mint, Transfer and Burn of key/value pairs
+//! 4. Tests for failing condition handling
 
 mod common;
 
@@ -31,7 +32,7 @@ fn test_wallet_loading_pass() {
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
-    assert_eq!(loaded_wallets.len(), 2);
+    assert_eq!(loaded_wallets.len(), 3);
 }
 
 #[test]
@@ -40,10 +41,10 @@ fn test_wallet_and_account_initialization_pass() {
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
-    assert_eq!(loaded_wallets.len(), 2);
+    assert_eq!(loaded_wallets.len(), 3);
     let initialized_accounts =
         load_and_initialize_accounts(&rpc_client, Instructions::InitializeAccount as u8, cc);
-    assert_eq!(initialized_accounts.len(), 2);
+    assert_eq!(initialized_accounts.len(), 3);
     for account in initialized_accounts {
         let (initialized, _) = unpack_account_data(&rpc_client, account, cc).unwrap();
         assert!(initialized);

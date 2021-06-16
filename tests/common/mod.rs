@@ -5,7 +5,11 @@ use {
         get_account_for, load_account, load_wallet, ACCOUNT_STATE_SPACE, KEYS_DB, PROG_KEY,
     },
     solana_client::rpc_client::RpcClient,
-    solana_sdk::{commitment_config::CommitmentConfig, signature::Keypair, signer::Signer},
+    solana_sdk::{
+        commitment_config::CommitmentConfig,
+        signature::{read_keypair_file, Keypair},
+        signer::Signer,
+    },
     solana_validator::test_validator::TestValidatorGenesis,
     std::{path::PathBuf, str::FromStr},
 };
@@ -79,4 +83,17 @@ pub fn load_and_initialize_accounts<'a>(
         }
     }
     accounts
+}
+
+/// Get the RpcClient from the solana configuration
+pub fn rpc_client_from_config() -> Result<(RpcClient, Keypair), Box<dyn std::error::Error>> {
+    let config = if let Some(ref config_file) = *solana_cli_config::CONFIG_FILE {
+        solana_cli_config::Config::load(config_file).unwrap_or_default()
+    } else {
+        solana_cli_config::Config::default()
+    };
+    Ok((
+        RpcClient::new_with_commitment(config.json_rpc_url, CommitmentConfig::confirmed()),
+        read_keypair_file(config.keypair_path)?,
+    ))
 }
