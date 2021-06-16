@@ -73,8 +73,12 @@ impl Pack for ProgramAccountState {
         // Store the core data length and serialized content
         let keyval_store_data = self.btree_storage.try_to_vec().unwrap();
         let data_len = keyval_store_data.len();
-        data_len_dst[..].copy_from_slice(&(data_len as u32).to_le_bytes());
-        data_dst[0..data_len].copy_from_slice(&keyval_store_data);
+        if data_len < BTREE_STORAGE {
+            data_len_dst[..].copy_from_slice(&(data_len as u32).to_le_bytes());
+            data_dst[0..data_len].copy_from_slice(&keyval_store_data);
+        } else {
+            panic!();
+        }
     }
 
     /// Retrieve 'state' of account from account data area
