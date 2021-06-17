@@ -18,6 +18,7 @@ pub enum ProgramInstruction {
 
 impl ProgramInstruction {
     /// Unpack inbound buffer to associated Instruction
+    /// The expected format for input is a Borsh serialized vector
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
         let block = Vec::<Vec<u8>>::try_from_slice(input).unwrap();
         match block[0][0] {
