@@ -20,30 +20,27 @@ impl ProgramInstruction {
     /// Unpack inbound buffer to associated Instruction
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
         let block = Vec::<Vec<u8>>::try_from_slice(input).unwrap();
-        let instruction = &block[0][0];
-        // let header = &block[0];
-        // let instruction = header[0];
-        match instruction {
+        match block[0][0] {
             0 => Ok(ProgramInstruction::InitializeAccount),
             1 => Ok(Self::MintToAccount {
-                key: String::try_from_slice(&block[1]).unwrap(),
-                value: String::try_from_slice(&block[2]).unwrap(),
+                key: String::try_from_slice(&block[1])?,
+                value: String::try_from_slice(&block[2])?,
             }),
             2 => Ok(Self::TransferBetweenAccounts {
-                key: String::try_from_slice(&block[1]).unwrap(),
+                key: String::try_from_slice(&block[1])?,
             }),
             3 => Ok(Self::BurnFromAccount {
-                key: String::try_from_slice(&block[1]).unwrap(),
+                key: String::try_from_slice(&block[1])?,
             }),
             4 => Ok(Self::MintToAccountWithFee {
-                key: String::try_from_slice(&block[1]).unwrap(),
-                value: String::try_from_slice(&block[2]).unwrap(),
+                key: String::try_from_slice(&block[1])?,
+                value: String::try_from_slice(&block[2])?,
             }),
             5 => Ok(Self::TransferBetweenAccountsWithFee {
-                key: String::try_from_slice(&block[1]).unwrap(),
+                key: String::try_from_slice(&block[1])?,
             }),
             6 => Ok(Self::BurnFromAccountWithFee {
-                key: String::try_from_slice(&block[1]).unwrap(),
+                key: String::try_from_slice(&block[1])?,
             }),
             _ => Err(SampleError::DeserializationFailure.into()),
         }

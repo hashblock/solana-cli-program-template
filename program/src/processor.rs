@@ -16,6 +16,8 @@ use solana_program::{
 
 pub struct Processor {}
 
+/// Service fees debited from participating accounts and
+/// credited to a 'service' account
 enum SampleServiceFees {
     Minting = 10,
     Transfering = 30,
