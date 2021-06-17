@@ -6,7 +6,7 @@
 //! 3. Tests for sucessful Initialize, Mint, Transfer and Burn of key/value pairs
 //! 4. Tests for failing condition handling
 
-mod common;
+pub mod common;
 
 use {
     cli_program_template::prelude::{

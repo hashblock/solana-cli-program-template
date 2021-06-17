@@ -1,4 +1,4 @@
-//! @brief Common function for testing
+//! @brief Common functions used by tests
 
 use {
     cli_program_template::prelude::{
@@ -18,7 +18,7 @@ const LEDGER_PATH: &str = "./.ledger";
 const PROG_PATH: &str = "program/target/bpfel-unknown-unknown/release/";
 const PROG_NAME: &str = "solana_cli_template_program_bpf";
 
-/// Setup the test validator properties
+/// Setup the test validator with predefined properties
 pub fn setup_validator() -> TestValidatorGenesis {
     std::env::set_var("BPF_OUT_DIR", PROG_PATH);
     let mut test_validator = TestValidatorGenesis::default();
@@ -27,7 +27,7 @@ pub fn setup_validator() -> TestValidatorGenesis {
     test_validator
 }
 
-/// Cleans up existing ledger before running
+/// Ensures an empty ledger before setting up the validator
 pub fn clean_ledger_setup_validator() -> TestValidatorGenesis {
     if PathBuf::from_str(LEDGER_PATH).unwrap().exists() {
         std::fs::remove_dir_all(LEDGER_PATH).unwrap();
@@ -35,7 +35,7 @@ pub fn clean_ledger_setup_validator() -> TestValidatorGenesis {
     setup_validator()
 }
 
-/// Batch load all user wallets
+/// Batch load all user wallets (User1, User2, Service)
 pub fn load_user_wallets<'a>(
     rpc_client: &RpcClient,
     funding_source: &dyn Signer,
@@ -56,7 +56,7 @@ pub fn load_user_wallets<'a>(
     wallets
 }
 
-/// Batch load all user wallets and accounts
+/// Batch load all user wallets and accounts (User1, User2, Service)
 pub fn load_and_initialize_accounts<'a>(
     rpc_client: &RpcClient,
     initialize_instruction: u8,

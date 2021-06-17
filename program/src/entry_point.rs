@@ -1,5 +1,4 @@
-
-use crate::{processor::Processor, error::SampleError};
+use crate::{error::SampleError, processor::Processor};
 use solana_program::{
     account_info::AccountInfo, entrypoint, entrypoint::ProgramResult,
     program_error::PrintProgramError, pubkey::Pubkey,

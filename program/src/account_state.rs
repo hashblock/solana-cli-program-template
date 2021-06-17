@@ -1,4 +1,4 @@
-//! account_state manages account data
+//! @brief account_state manages account data
 
 use crate::error::SampleError;
 use arrayref::{array_mut_ref, array_ref, array_refs, mut_array_refs};

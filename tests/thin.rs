@@ -16,7 +16,7 @@
 //! solana-test-validator --ledger ~/solana-cli-program-template/.ledger
 //! ```
 
-mod common;
+pub mod common;
 
 use {
     cli_program_template::prelude::{
