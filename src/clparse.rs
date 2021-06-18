@@ -64,6 +64,93 @@ pub fn parse_command_line() -> ArgMatches<'static> {
                     .help("Address to get the balance of"),
             ),
         )
+        .subcommand(
+            SubCommand::with_name("mint")
+                .about("Mint a new key/value pair to an account")
+                .arg(
+                    Arg::with_name("to-owner")
+                        .display_order(1)
+                        .long("to-owner")
+                        .short("t")
+                        .required(true)
+                        .takes_value(true)
+                        .help("Owner of accounts")
+                        .possible_values(&["User1", "User2"]),
+                )
+                .arg(
+                    Arg::with_name("key")
+                        .display_order(2)
+                        .long("key")
+                        .short("k")
+                        .required(true)
+                        .takes_value(true)
+                        .help("The key of key/value pair"),
+                )
+                .arg(
+                    Arg::with_name("value")
+                        .display_order(3)
+                        .long("value")
+                        .required(true)
+                        .min_values(1)
+                        .help("The value string of key/value pair"),
+                ),
+        )
+        .subcommand(
+            SubCommand::with_name("transfer")
+                .about("Transfer a key/value pair from one account to another")
+                .arg(
+                    Arg::with_name("from-owner")
+                        .display_order(1)
+                        .long("from-owner")
+                        .short("f")
+                        .required(true)
+                        .takes_value(true)
+                        .help("Owner to transfer from")
+                        .possible_values(&["User1", "User2"]),
+                )
+                .arg(
+                    Arg::with_name("to-owner")
+                        .display_order(2)
+                        .long("to-owner")
+                        .short("t")
+                        .required(true)
+                        .takes_value(true)
+                        .help("Owner to transfer to")
+                        .possible_values(&["User1", "User2"]),
+                )
+                .arg(
+                    Arg::with_name("key")
+                        .display_order(3)
+                        .long("key")
+                        .short("k")
+                        .required(true)
+                        .takes_value(true)
+                        .help("The key of key/value pair to transfer"),
+                ),
+        )
+        .subcommand(
+            SubCommand::with_name("burn")
+                .about("Burn (delete) a key/value pair from an account")
+                .arg(
+                    Arg::with_name("from-owner")
+                        .display_order(1)
+                        .long("from-owner")
+                        .short("f")
+                        .required(true)
+                        .takes_value(true)
+                        .help("Owner to burn key/value from")
+                        .possible_values(&["User1", "User2"]),
+                )
+                .arg(
+                    Arg::with_name("key")
+                        .display_order(2)
+                        .long("key")
+                        .short("k")
+                        .required(true)
+                        .takes_value(true)
+                        .help("The key of key/value pair to burn"),
+                ),
+        )
         .subcommand(SubCommand::with_name("ping").about("Send a ping transaction"))
         .get_matches()
 }

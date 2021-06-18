@@ -26,6 +26,8 @@ const WALLET: &str = "wallet";
 const ACCOUNT: &str = "account";
 /// The base folder for the program
 const KEY_PROGRAM_PATH: &str = "program";
+/// Our fee receiving account owner
+const SERVICE_OWNER: &str = "Service";
 
 // Initialize the pathbuf for the path/filename of keys db configuration
 lazy_static! {
@@ -158,6 +160,17 @@ impl KeysDB {
         }
         result
     }
+    /// Returns non service account owner names
+    pub fn non_service_key_owners(&self) -> Vec<String> {
+        let mut all_owners = self.key_owners();
+        all_owners.remove(
+            all_owners
+                .iter()
+                .position(|x| *x == SERVICE_OWNER)
+                .expect("needle not found"),
+        );
+        all_owners
+    }
     /// Get a wallet and account keypair for name
     pub fn wallet_and_account(
         &self,
@@ -193,10 +206,10 @@ mod tests {
 
     #[test]
     fn test_keys_keypair_load() {
-        assert!(KEYS_DB.keys_registry().contains_key("Service"));
+        assert!(KEYS_DB.keys_registry().contains_key(SERVICE_OWNER));
         assert!(KEYS_DB.keys_registry().contains_key("User1"));
         assert!(KEYS_DB.keys_registry().contains_key("User2"));
-        if let Some(user) = KEYS_DB.keys_registry().get("Service") {
+        if let Some(user) = KEYS_DB.keys_registry().get(SERVICE_OWNER) {
             assert!(user.contains_key(WALLET));
             assert!(user.contains_key(ACCOUNT));
         }
@@ -214,6 +227,14 @@ mod tests {
     fn test_list_key_holders() {
         let key_owners = KEYS_DB.key_owners();
         assert!(key_owners.contains(&"Service".to_string()));
+        assert!(key_owners.contains(&"User1".to_string()));
+        assert!(key_owners.contains(&"User2".to_string()));
+    }
+
+    #[test]
+    fn test_non_service_key_holders() {
+        let key_owners = KEYS_DB.non_service_key_owners();
+        assert!(!key_owners.contains(&"Service".to_string()));
         assert!(key_owners.contains(&"User1".to_string()));
         assert!(key_owners.contains(&"User2".to_string()));
     }

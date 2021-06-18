@@ -80,6 +80,36 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .value)
             );
         }
+        ("mint", Some(_arg_matchs)) => {
+            let owner = matches.value_of("to-owner").unwrap();
+            let key = matches.value_of("key").unwrap();
+            let value = {
+                let value: Vec<_> = matches.values_of("value").unwrap().collect();
+                value.join(" ")
+            };
+            // Verify the owner is a valid account
+            // Execute command
+            println!("Attempting to mint {}/{} to {}", key, value, owner);
+        }
+        ("transfer", Some(_arg_matchs)) => {
+            let from_owner = matches.value_of("from-owner").unwrap();
+            let to_owner = matches.value_of("to-owner").unwrap();
+            let key = matches.value_of("key").unwrap();
+            // Verify that from and to owners are different and both are
+            // valid
+            // Execute command
+            println!(
+                "Attempting to transfer {} from {} to {}",
+                key, from_owner, to_owner
+            );
+        }
+        ("burn", Some(_arg_matchs)) => {
+            let owner = matches.value_of("from-owner").unwrap();
+            let key = matches.value_of("key").unwrap();
+            // Verify the owner is a valid account
+            // Execute command
+            println!("Attempting to burn {} from {}", key, owner);
+        }
         ("ping", Some(_arg_matches)) => {
             let signature = ping_instruction(
                 &rpc_client,
