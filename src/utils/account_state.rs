@@ -1,7 +1,7 @@
 //! @brief Account state access
 
 use {
-    crate::utils::account_utils::get_account_for,
+    crate::utils::txn_utils::get_account_for,
     arrayref::*,
     borsh::BorshDeserialize,
     solana_client::rpc_client::RpcClient,
