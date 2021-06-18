@@ -1,25 +1,18 @@
+//! @brief Main entry poiint for CLI
+
 use {
-    clap::{crate_description, crate_name, crate_version, App, AppSettings, Arg, SubCommand},
+    crate::utils::txn_utils::ping_instruction,
+    clparse::parse_command_line,
     solana_clap_utils::{
-        input_parsers::pubkey_of,
-        input_validators::{
-            is_url_or_moniker, is_valid_pubkey, is_valid_signer, normalize_to_url_if_moniker,
-        },
+        input_parsers::pubkey_of, input_validators::normalize_to_url_if_moniker,
         keypair::DefaultSigner,
     },
     solana_client::rpc_client::RpcClient,
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
-    solana_sdk::{
-        commitment_config::CommitmentConfig,
-        message::Message,
-        native_token::Sol,
-        signature::{Signature, Signer},
-        system_instruction,
-        transaction::Transaction,
-    },
+    solana_sdk::{commitment_config::CommitmentConfig, native_token::Sol, signature::Signer},
     std::{process::exit, sync::Arc},
 };
-
+pub mod clparse;
 pub mod utils;
 
 struct Config {
@@ -29,95 +22,9 @@ struct Config {
     verbose: bool,
 }
 
-fn process_ping(
-    rpc_client: &RpcClient,
-    signer: &dyn Signer,
-    commitment_config: CommitmentConfig,
-) -> Result<Signature, Box<dyn std::error::Error>> {
-    let from = signer.pubkey();
-    let to = signer.pubkey();
-    let amount = 0;
-
-    let mut transaction = Transaction::new_unsigned(Message::new(
-        &[system_instruction::transfer(&from, &to, amount)],
-        Some(&signer.pubkey()),
-    ));
-
-    let (recent_blockhash, _fee_calculator) = rpc_client
-        .get_recent_blockhash()
-        .map_err(|err| format!("error: unable to get recent blockhash: {}", err))?;
-
-    transaction
-        .try_sign(&vec![signer], recent_blockhash)
-        .map_err(|err| format!("error: failed to sign transaction: {}", err))?;
-
-    let signature = rpc_client
-        .send_and_confirm_transaction_with_spinner_and_commitment(&transaction, commitment_config)
-        .map_err(|err| format!("error: send transaction: {}", err))?;
-
-    Ok(signature)
-}
-
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let app_matches = App::new(crate_name!())
-        .about(crate_description!())
-        .version(crate_version!())
-        .setting(AppSettings::SubcommandRequiredElseHelp)
-        .arg({
-            let arg = Arg::with_name("config_file")
-                .short("C")
-                .long("config")
-                .value_name("PATH")
-                .takes_value(true)
-                .global(true)
-                .help("Configuration file to use");
-            if let Some(ref config_file) = *solana_cli_config::CONFIG_FILE {
-                arg.default_value(&config_file)
-            } else {
-                arg
-            }
-        })
-        .arg(
-            Arg::with_name("keypair")
-                .long("keypair")
-                .value_name("KEYPAIR")
-                .validator(is_valid_signer)
-                .takes_value(true)
-                .global(true)
-                .help("Filepath or URL to a keypair [default: client keypair]"),
-        )
-        .arg(
-            Arg::with_name("verbose")
-                .long("verbose")
-                .short("v")
-                .takes_value(false)
-                .global(true)
-                .help("Show additional information"),
-        )
-        .arg(
-            Arg::with_name("json_rpc_url")
-                .short("u")
-                .long("url")
-                .value_name("URL")
-                .takes_value(true)
-                .global(true)
-                .validator(is_url_or_moniker)
-                .help("JSON RPC URL for the cluster [default: value from configuration file]"),
-        )
-        .subcommand(
-            SubCommand::with_name("balance").about("Get balance").arg(
-                Arg::with_name("address")
-                    .validator(is_valid_pubkey)
-                    .value_name("ADDRESS")
-                    .takes_value(true)
-                    .index(1)
-                    .help("Address to get the balance of"),
-            ),
-        )
-        .subcommand(SubCommand::with_name("ping").about("Send a ping transaction"))
-        .get_matches();
-
+    let app_matches = parse_command_line();
     let (sub_command, sub_matches) = app_matches.subcommand();
     let matches = sub_matches.unwrap();
     let mut wallet_manager: Option<Arc<RemoteWalletManager>> = None;
@@ -174,7 +81,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             );
         }
         ("ping", Some(_arg_matches)) => {
-            let signature = process_ping(
+            let signature = ping_instruction(
                 &rpc_client,
                 config.default_signer.as_ref(),
                 config.commitment_config,
@@ -193,6 +100,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(test)]
 mod test {
+
     use {super::*, solana_validator::test_validator::*};
 
     #[test]
@@ -201,7 +109,7 @@ mod test {
         let (rpc_client, _recent_blockhash, _fee_calculator) = test_validator.rpc_client();
 
         assert!(matches!(
-            process_ping(&rpc_client, &payer, CommitmentConfig::confirmed()),
+            ping_instruction(&rpc_client, &payer, CommitmentConfig::confirmed()),
             Ok(_)
         ));
     }

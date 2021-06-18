@@ -1,4 +1,4 @@
-//! @brief Account utilities
+//! @brief Transaction utilities
 
 use {
     crate::utils::keys_db::PROG_KEY,
@@ -10,7 +10,7 @@ use {
         instruction::{AccountMeta, Instruction},
         message::Message,
         pubkey::Pubkey,
-        signature::Keypair,
+        signature::{Keypair, Signature},
         signer::Signer,
         system_instruction,
         transaction::Transaction,
@@ -179,24 +179,19 @@ pub fn submit_transaction(
     wallet_signer: &dyn Signer,
     instruction: Instruction,
     commitment_config: CommitmentConfig,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<Signature, Box<dyn std::error::Error>> {
     let mut transaction =
         Transaction::new_unsigned(Message::new(&[instruction], Some(&wallet_signer.pubkey())));
     let (recent_blockhash, _fee_calculator) = rpc_client
         .get_recent_blockhash()
-        .map_err(|err| format!("error: unable to get recent blockhash: {}", err))
-        .unwrap();
+        .map_err(|err| format!("error: unable to get recent blockhash: {}", err))?;
     transaction
         .try_sign(&vec![wallet_signer], recent_blockhash)
-        .map_err(|err| format!("error: failed to sign transaction: {}", err))
-        .unwrap();
-
-    match rpc_client
+        .map_err(|err| format!("error: failed to sign transaction: {}", err))?;
+    let signature = rpc_client
         .send_and_confirm_transaction_with_spinner_and_commitment(&transaction, commitment_config)
-    {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e.into()),
-    }
+        .map_err(|err| format!("error: send transaction: {}", err))?;
+    Ok(signature)
 }
 
 /// Perform a mint transaction consisting of a key/value pair
@@ -208,15 +203,14 @@ pub fn mint_transaction(
     mint_value: &str,
     mint_instruction_id: u8,
     commitment_config: CommitmentConfig,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<Signature, Box<dyn std::error::Error>> {
     let data = vec![
         vec![mint_instruction_id],
         mint_key.try_to_vec().unwrap(),
         mint_value.try_to_vec().unwrap(),
     ];
     let instruction = Instruction::new_with_borsh(PROG_KEY.pubkey(), &data, accounts.to_vec());
-    submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)?;
-    Ok(())
+    submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)
 }
 
 /// Transfer a minted key/value from one account to another account
@@ -227,14 +221,13 @@ pub fn transfer_instruction(
     transfer_key: &str,
     transfer_instruction_id: u8,
     commitment_config: CommitmentConfig,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<Signature, Box<dyn std::error::Error>> {
     let data = vec![
         vec![transfer_instruction_id],
         transfer_key.try_to_vec().unwrap(),
     ];
     let instruction = Instruction::new_with_borsh(PROG_KEY.pubkey(), &data, accounts.to_vec());
-    submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)?;
-    Ok(())
+    submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)
 }
 
 /// Burn, delete, the key/value from the owning account
@@ -245,9 +238,22 @@ pub fn burn_instruction(
     burn_key: &str,
     burn_instruction_id: u8,
     commitment_config: CommitmentConfig,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<Signature, Box<dyn std::error::Error>> {
     let data = vec![vec![burn_instruction_id], burn_key.try_to_vec().unwrap()];
     let instruction = Instruction::new_with_borsh(PROG_KEY.pubkey(), &data, accounts.to_vec());
-    submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)?;
-    Ok(())
+    submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)
+}
+
+pub fn ping_instruction(
+    rpc_client: &RpcClient,
+    signer: &dyn Signer,
+    commitment_config: CommitmentConfig,
+) -> Result<Signature, Box<dyn std::error::Error>> {
+    let amount = 0;
+    submit_transaction(
+        rpc_client,
+        signer,
+        system_instruction::transfer(&signer.pubkey(), &signer.pubkey(), amount),
+        commitment_config,
+    )
 }
