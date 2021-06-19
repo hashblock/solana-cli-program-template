@@ -16,6 +16,7 @@ There are three (3) primary instructions which are not charged a fee to any acco
 3. Burn - Burns (removes) a key/value pair from an account. Fails if the key does not exist in the account
 
 And three (3) fee charging variants:
+
 4. MintWithFee - Same as Mint but debits the target account a fee for the service
 5. TransferWithFee - Same as Transfer but debits the "from" account and the "to" account for the service
 6. BurnWithFee - Same as Burn but debits the account a fee for the service
