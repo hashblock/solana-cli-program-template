@@ -63,6 +63,7 @@ impl Processor {
 
     /// Initialize the programs account, which is the first in accounts
     fn initialize_account(accounts: &[AccountInfo]) -> ProgramResult {
+        msg!("Initialize account");
         let account_info_iter = &mut accounts.iter();
         let program_account = next_account_info(account_info_iter)?;
         let mut account_data = program_account.data.borrow_mut();
@@ -86,6 +87,7 @@ impl Processor {
         key: String,
         value: String,
     ) -> ProgramResult {
+        msg!("Mint to account");
         let account_info_iter = &mut accounts.iter();
         let program_account = next_account_info(account_info_iter)?;
         let mut account_data = program_account.data.borrow_mut();
@@ -114,6 +116,7 @@ impl Processor {
     /// Transfer a key/pair from one program account to another
     /// "from" account is first and "to" account is second  in accounts
     fn transfer_keypair_to_account(accounts: &[AccountInfo], key: String) -> ProgramResult {
+        msg!("Transfer from account");
         let account_info_iter = &mut accounts.iter();
         // Transfer from this account
         let from_program_account = next_account_info(account_info_iter)?;
@@ -157,6 +160,7 @@ impl Processor {
     }
     /// Burn a key/pair from the programs account, which is the first in accounts
     fn burn_keypair_from_account(accounts: &[AccountInfo], key: String) -> ProgramResult {
+        msg!("Burn from account");
         let account_info_iter = &mut accounts.iter();
         let program_account = next_account_info(account_info_iter)?;
         let mut account_data = program_account.data.borrow_mut();

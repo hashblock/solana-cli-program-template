@@ -1,7 +1,13 @@
 //! @brief Main entry poiint for CLI
 
+use solana_sdk::instruction::AccountMeta;
+
 use {
-    crate::utils::txn_utils::ping_instruction,
+    cli_program_template::prelude::{
+        burn_instruction, load_account, load_wallet, mint_transaction, ping_instruction,
+        transfer_instruction, unpack_account_data, Instructions, ACCOUNT_STATE_SPACE, KEYS_DB,
+        PROG_KEY,
+    },
     clparse::parse_command_line,
     solana_clap_utils::{
         input_parsers::pubkey_of, input_validators::normalize_to_url_if_moniker,
@@ -9,7 +15,11 @@ use {
     },
     solana_client::rpc_client::RpcClient,
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
-    solana_sdk::{commitment_config::CommitmentConfig, native_token::Sol, signature::Signer},
+    solana_sdk::{
+        commitment_config::CommitmentConfig,
+        native_token::Sol,
+        signature::{Keypair, Signer},
+    },
     std::{process::exit, sync::Arc},
 };
 pub mod clparse;
@@ -20,6 +30,38 @@ struct Config {
     default_signer: Box<dyn Signer>,
     json_rpc_url: String,
     verbose: bool,
+}
+
+/// Wallet and account verification and load
+///
+/// Will search KEYS_DB for existence of the owner string and return the wallet and account keys
+/// and, optionally, fund the wallet and create and initialize the account if needed
+///
+/// # Example
+/// ```ignore
+/// validate_user_account_and_load(&rpc_client, funding_source, commitment_config, "User1")?;
+/// ```
+fn validate_user_accounts_and_load<'a>(
+    rpc_client: &RpcClient,
+    funding_source: &dyn Signer,
+    commitment_config: CommitmentConfig,
+    owner: &str,
+) -> Result<(&'a Keypair, &'a Keypair), Box<dyn std::error::Error>> {
+    // Check in KEYS_DB for owner
+    let (wallet, account) = KEYS_DB.wallet_and_account(owner.to_string())?;
+    // Fund wallet if required
+    load_wallet(&rpc_client, wallet, funding_source, commitment_config)?;
+    // Create and initialize account if required
+    load_account(
+        &rpc_client,
+        account,
+        wallet,
+        &PROG_KEY.pubkey(),
+        ACCOUNT_STATE_SPACE as u64,
+        Instructions::InitializeAccount as u8,
+        commitment_config,
+    )?;
+    Ok((wallet, account))
 }
 
 #[tokio::main]
@@ -67,6 +109,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("JSON RPC URL: {}", config.json_rpc_url);
     }
     let rpc_client = RpcClient::new(config.json_rpc_url.clone());
+    // Load the keys_db
 
     match (sub_command, sub_matches) {
         ("balance", Some(arg_matches)) => {
@@ -88,8 +131,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 value.join(" ")
             };
             // Verify the owner is a valid account
+            let (wallet, account) = validate_user_accounts_and_load(
+                &rpc_client,
+                config.default_signer.as_ref(),
+                config.commitment_config,
+                owner,
+            )?;
             // Execute command
-            println!("Attempting to mint {}/{} to {}", key, value, owner);
+            mint_transaction(
+                &rpc_client,
+                &[
+                    AccountMeta::new(account.pubkey(), false),
+                    AccountMeta::new(wallet.pubkey(), true),
+                ],
+                wallet,
+                key,
+                &value,
+                Instructions::FreeMint as u8,
+                config.commitment_config,
+            )?;
+            let (_, btree) = unpack_account_data(&rpc_client, account, config.commitment_config)?;
+            println!("{} to account key/value store {:?}", owner, btree);
         }
         ("transfer", Some(_arg_matchs)) => {
             let from_owner = matches.value_of("from-owner").unwrap();
@@ -97,18 +159,62 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             let key = matches.value_of("key").unwrap();
             // Verify that from and to owners are different and both are
             // valid
+            let (from_wallet, from_account) = validate_user_accounts_and_load(
+                &rpc_client,
+                config.default_signer.as_ref(),
+                config.commitment_config,
+                from_owner,
+            )?;
+            let (_, to_account) = validate_user_accounts_and_load(
+                &rpc_client,
+                config.default_signer.as_ref(),
+                config.commitment_config,
+                to_owner,
+            )?;
             // Execute command
-            println!(
-                "Attempting to transfer {} from {} to {}",
-                key, from_owner, to_owner
-            );
+            transfer_instruction(
+                &rpc_client,
+                &[
+                    AccountMeta::new(from_account.pubkey(), false),
+                    AccountMeta::new(to_account.pubkey(), false),
+                    AccountMeta::new(from_wallet.pubkey(), true),
+                ],
+                from_wallet,
+                &key,
+                Instructions::FreeTransfer as u8,
+                config.commitment_config,
+            )?;
+            let (_, btree) =
+                unpack_account_data(&rpc_client, from_account, config.commitment_config)?;
+            println!("{} from account key/value store {:?}", from_owner, btree);
+            let (_, btree) =
+                unpack_account_data(&rpc_client, to_account, config.commitment_config)?;
+            println!("{} to account key/value store {:?}", to_owner, btree);
         }
         ("burn", Some(_arg_matchs)) => {
             let owner = matches.value_of("from-owner").unwrap();
             let key = matches.value_of("key").unwrap();
             // Verify the owner is a valid account
+            let (wallet, account) = validate_user_accounts_and_load(
+                &rpc_client,
+                config.default_signer.as_ref(),
+                config.commitment_config,
+                owner,
+            )?;
             // Execute command
-            println!("Attempting to burn {} from {}", key, owner);
+            burn_instruction(
+                &rpc_client,
+                &[
+                    AccountMeta::new(account.pubkey(), false),
+                    AccountMeta::new(wallet.pubkey(), true),
+                ],
+                wallet,
+                &key,
+                Instructions::FreeBurn as u8,
+                config.commitment_config,
+            )?;
+            let (_, btree) = unpack_account_data(&rpc_client, account, config.commitment_config)?;
+            println!("{} from account key/value store {:?}", owner, btree);
         }
         ("ping", Some(_arg_matches)) => {
             let signature = ping_instruction(
