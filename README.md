@@ -1,6 +1,3 @@
-## Quick start
-1. Install Rust from https://rustup.rs/
-2. `cargo run`
 
 ## About
 `solana-cli-program template` is a sample app demonstrating the creation of a minimal CLI application written in Rust to interact with Solana and programs.
@@ -12,6 +9,19 @@ It provides multiple pieces of functionality:
 - `burn`: Burn (delete) a key, and it's value, from an owning account.
 - `balance`: Returns an account's balance.
 - `help`: Tips for using the app. This is an off-chain operation.
+
+`solana-cli-program template` is a derived work inspired by @mvines [solana-cli-template](https://github.com/mvines/solana-cli-template)
+
+## Quick start
+1. Install Rust from https://rustup.rs/
+2. Clone this repo
+3. If running the integration tests or Mint, Transfer, Burn instructions:
+  ```
+  cd program
+  cargo build-bpf
+  cd ..
+  ```
+4. `cargo run help`
 
 ## Sample keys
 The repo includes sample keys for 'owners'. There are two owner accounts predefined `User1` and `User2`, each with two keypairs defined:
