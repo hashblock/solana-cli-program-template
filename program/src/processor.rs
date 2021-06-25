@@ -44,19 +44,19 @@ impl Processor {
         Ok(())
     }
 
-    /// Extracts the service fee from the user account and
+    /// Extracts the service fee from the users program account and
     /// credits the service account
     fn charge_service_fee(
-        user_account: &AccountInfo,
+        program_account: &AccountInfo,
         service_account: &AccountInfo,
         amount: u64,
     ) -> ProgramResult {
         // If tracking can not afford transaction fee
-        if **user_account.try_borrow_lamports()? < amount {
+        if **program_account.try_borrow_lamports()? < amount {
             return Err(SampleError::InsufficientFundsForTransaction.into());
         }
         // Debit user and credit service
-        **user_account.try_borrow_mut_lamports()? -= amount;
+        **program_account.try_borrow_mut_lamports()? -= amount;
         **service_account.try_borrow_mut_lamports()? += amount;
         Ok(())
     }
@@ -104,9 +104,12 @@ impl Processor {
         value: String,
     ) -> ProgramResult {
         // Charge for service
+        let account_info_iter = &mut accounts.iter();
+        let program_account = next_account_info(account_info_iter)?;
+        let service_account = next_account_info(account_info_iter)?;
         Self::charge_service_fee(
-            &accounts[0],
-            &accounts[1],
+            &program_account,
+            &service_account,
             SampleServiceFees::Minting as u64,
         )?;
         // Invoke the actual mint
@@ -142,16 +145,21 @@ impl Processor {
         accounts: &[AccountInfo],
         key: String,
     ) -> ProgramResult {
+        let account_info_iter = &mut accounts.iter();
+        let from_account = next_account_info(account_info_iter)?;
+        let to_account = next_account_info(account_info_iter)?;
+        let service_account = next_account_info(account_info_iter)?;
+
         // Cost to "from account"
         Self::charge_service_fee(
-            &accounts[0],
-            &accounts[2],
+            &from_account,
+            &service_account,
             SampleServiceFees::Transfering as u64,
         )?;
         // Cost to "to account"
         Self::charge_service_fee(
-            &accounts[1],
-            &accounts[2],
+            &to_account,
+            &service_account,
             SampleServiceFees::Minting as u64,
         )?;
         // Invoke the actual transfer
@@ -175,10 +183,13 @@ impl Processor {
     }
     /// Burn a key/pair extracting a service fee for the effort
     fn burn_keypair_from_account_with_fee(accounts: &[AccountInfo], key: String) -> ProgramResult {
+        let account_info_iter = &mut accounts.iter();
+        let program_account = next_account_info(account_info_iter)?;
+        let service_account = next_account_info(account_info_iter)?;
         // Charge for service
         Self::charge_service_fee(
-            &accounts[0],
-            &accounts[1],
+            &program_account,
+            &service_account,
             SampleServiceFees::Burning as u64,
         )?;
         // Invoke the actual burn
