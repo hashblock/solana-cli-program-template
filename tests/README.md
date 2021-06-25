@@ -1,6 +1,6 @@
 # Integration testing
 
-This directory contains integration tests of the Solana RPC interface to the sample program (`solana-cli-program-template/program`). To just test the programs transactions, refer to [transaction testing](program/tests/README.MD)
+This directory contains integration tests of the Solana RPC interface to the sample program (`solana-cli-program-template/program`). To just test the programs transactions, refer to [transaction testing](https://github.com/hashblock/solana-cli-program-template/blob/main/program/tests/README.md)
 
 ## Layout
 * Keys: The program and a couple of account keys, generated with `solana-keygen`. They are located in `keys/`.
