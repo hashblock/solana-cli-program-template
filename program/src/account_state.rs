@@ -11,13 +11,13 @@ use solana_program::{
 use std::collections::BTreeMap;
 
 /// Initialization flag size for account state
-const INITIALIZED_BYTES: usize = 1;
+pub const INITIALIZED_BYTES: usize = 1;
 /// Storage for the serialized size of the BTreeMap control
-const BTREE_LENGTH: usize = 4;
+pub const BTREE_LENGTH: usize = 4;
 /// Storage for the serialized BTreeMap container
-const BTREE_STORAGE: usize = 1019;
+pub const BTREE_STORAGE: usize = 1019;
 /// Sum of all account state lengths
-const ACCOUNT_STATE_SPACE: usize = INITIALIZED_BYTES + BTREE_LENGTH + BTREE_STORAGE;
+pub const ACCOUNT_STATE_SPACE: usize = INITIALIZED_BYTES + BTREE_LENGTH + BTREE_STORAGE;
 
 /// Maintains global accumulator
 #[derive(Debug, Default, PartialEq)]

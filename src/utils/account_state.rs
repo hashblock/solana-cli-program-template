@@ -19,7 +19,7 @@ const BTREE_STORAGE: usize = 1019;
 pub const ACCOUNT_STATE_SPACE: usize = INITIALIZED_BYTES + BTREE_LENGTH + BTREE_STORAGE;
 
 /// Unpacks the token state and returns serialized accumulator value
-#[allow(clippy::clippy::ptr_offset_with_cast)]
+#[allow(clippy::ptr_offset_with_cast)]
 fn unpack_from_slice(src: &[u8]) -> Result<(bool, BTreeMap<String, String>), Box<dyn Error>> {
     let src = array_ref![src, 0, ACCOUNT_STATE_SPACE];
     // Setup pointers to key areas of account state data

@@ -1,8 +1,6 @@
 # Integration testing
 
-This directory contains integration tests of the sample program (`solana-cli-program-template/program`).
-
-The idea is to offer modularized integration test scanarios found in `tests/`.
+This directory contains integration tests of the Solana RPC interface to the sample program (`solana-cli-program-template/program`). To just test the programs transactions, refer to [transaction testing](../program/tests/README.MD)
 
 ## Layout
 * Keys: The program and a couple of account keys, generated with `solana-keygen`. They are located in `keys/`.
@@ -13,6 +11,8 @@ cd program
 cargo build-bpf
 cd ..
 ```
+* Tests: The idea of the integration tests is to offer modularized scenarios. These are represented by the different modules in the `tests/` folder.
+
 ## Scenarios
 The following describe the individual modules and intent:
 1. `tests/full.rs` (a.k.a. no-batteries-required) - Integration tests that automatically loads `solana-test-validator`, the sample programs and any external keys. Each tests included in `full.rs`, in effect, run with a new clean *ledger* each time a test is run. Includes both positive and negative testing.
