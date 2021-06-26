@@ -3,6 +3,7 @@
 use {
     arrayref::*,
     borsh::{BorshDeserialize, BorshSerialize},
+    solana_program::program_memory::sol_memcpy,
     std::{collections::BTreeMap, error::Error},
 };
 
@@ -62,7 +63,7 @@ pub fn pack_into_slice(
     let data_len = keyval_store_data.len();
     if data_len < BTREE_STORAGE {
         data_len_dst[..].copy_from_slice(&(data_len as u32).to_le_bytes());
-        data_dst[0..data_len].copy_from_slice(&keyval_store_data);
+        sol_memcpy(data_dst, &keyval_store_data, data_len);
     } else {
         panic!();
     }
