@@ -48,7 +48,6 @@ impl IsInitialized for ProgramAccountState {
     }
 }
 
-#[allow(clippy::ptr_offset_with_cast)]
 impl Pack for ProgramAccountState {
     const LEN: usize = ACCOUNT_STATE_SPACE;
 
