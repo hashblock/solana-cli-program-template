@@ -6,12 +6,12 @@ license = "WTFPL"
 publish = false
 
 [dependencies]
-arrayref = "0.3.6"
 borsh = "0.9.0"
 clap = "2.33.3"
 lazy_static = "1.4.0"
 serde = { version = "1.0.125", features = ["derive"] }
 serde_yaml = "0.8.17"
+sol-template-shared = {path = "shared"}
 solana-clap-utils = "=1.7.3"
 solana-cli-config = "=1.7.3"
 solana-client = "=1.7.3"
@@ -21,8 +21,10 @@ solana-sdk = "=1.7.3"
 tokio = { version = "1", features = ["full"] }
 
 [workspace]
-exclude = ["program"]
-
+members = [
+    "program",
+    "shared",
+]
 [dev-dependencies]
 lazy_static = "1.4.0"
 solana-validator = "=1.7.3"

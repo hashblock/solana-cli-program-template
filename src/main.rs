@@ -1,14 +1,12 @@
 //! @brief Main entry poiint for CLI
 
-use solana_sdk::instruction::AccountMeta;
-
 use {
     cli_program_template::prelude::{
         burn_instruction, load_account, load_wallet, mint_transaction, ping_instruction,
-        transfer_instruction, unpack_account_data, Instructions, ACCOUNT_STATE_SPACE, KEYS_DB,
-        PROG_KEY,
+        transfer_instruction, unpack_account_data, Instructions, KEYS_DB, PROG_KEY,
     },
     clparse::parse_command_line,
+    sol_template_shared::ACCOUNT_STATE_SPACE,
     solana_clap_utils::{
         input_parsers::pubkey_of, input_validators::normalize_to_url_if_moniker,
         keypair::DefaultSigner,
@@ -17,6 +15,7 @@ use {
     solana_remote_wallet::remote_wallet::RemoteWalletManager,
     solana_sdk::{
         commitment_config::CommitmentConfig,
+        instruction::AccountMeta,
         native_token::Sol,
         signature::{Keypair, Signer},
     },

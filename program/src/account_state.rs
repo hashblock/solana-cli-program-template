@@ -1,23 +1,13 @@
 //! @brief account_state manages account data
 
 use crate::error::SampleError;
-use arrayref::{array_mut_ref, array_ref, array_refs, mut_array_refs};
-use borsh::{BorshDeserialize, BorshSerialize};
+use sol_template_shared::ACCOUNT_STATE_SPACE;
 use solana_program::{
     entrypoint::ProgramResult,
     program_error::ProgramError,
     program_pack::{IsInitialized, Pack, Sealed},
 };
 use std::collections::BTreeMap;
-
-/// Initialization flag size for account state
-pub const INITIALIZED_BYTES: usize = 1;
-/// Storage for the serialized size of the BTreeMap control
-pub const BTREE_LENGTH: usize = 4;
-/// Storage for the serialized BTreeMap container
-pub const BTREE_STORAGE: usize = 1019;
-/// Sum of all account state lengths
-pub const ACCOUNT_STATE_SPACE: usize = INITIALIZED_BYTES + BTREE_LENGTH + BTREE_STORAGE;
 
 /// Maintains global accumulator
 #[derive(Debug, Default, PartialEq)]
@@ -64,50 +54,17 @@ impl Pack for ProgramAccountState {
 
     /// Store 'state' of account to its data area
     fn pack_into_slice(&self, dst: &mut [u8]) {
-        let dst = array_mut_ref![dst, 0, ACCOUNT_STATE_SPACE];
-        // Setup pointers to key areas of account state data
-        let (is_initialized_dst, data_len_dst, data_dst) =
-            mut_array_refs![dst, INITIALIZED_BYTES, BTREE_LENGTH, BTREE_STORAGE];
-        // Set the initialized flag
-        is_initialized_dst[0] = self.is_initialized as u8;
-        // Store the core data length and serialized content
-        let keyval_store_data = self.btree_storage.try_to_vec().unwrap();
-        let data_len = keyval_store_data.len();
-        if data_len < BTREE_STORAGE {
-            data_len_dst[..].copy_from_slice(&(data_len as u32).to_le_bytes());
-            data_dst[0..data_len].copy_from_slice(&keyval_store_data);
-        } else {
-            panic!();
-        }
+        sol_template_shared::pack_into_slice(self.is_initialized, &self.btree_storage, dst);
     }
 
     /// Retrieve 'state' of account from account data area
     fn unpack_from_slice(src: &[u8]) -> Result<Self, ProgramError> {
-        let src = array_ref![src, 0, ACCOUNT_STATE_SPACE];
-        // Setup pointers to key areas of account state data
-        let (is_initialized_src, data_len_src, data_src) =
-            array_refs![src, INITIALIZED_BYTES, BTREE_LENGTH, BTREE_STORAGE];
-
-        let is_initialized = match is_initialized_src {
-            [0] => false,
-            [1] => true,
-            _ => return Err(ProgramError::InvalidAccountData),
-        };
-        // Get current size of content in data area
-        let data_len = u32::from_le_bytes(*data_len_src) as usize;
-        // If emptry, create a default
-        if data_len == 0 {
-            Ok(ProgramAccountState {
+        match sol_template_shared::unpack_from_slice(src) {
+            Ok((is_initialized, btree_map)) => Ok(ProgramAccountState {
                 is_initialized,
-                btree_storage: BTreeMap::<String, String>::new(),
-            })
-        } else {
-            let data_dser =
-                BTreeMap::<String, String>::try_from_slice(&data_src[0..data_len]).unwrap();
-            Ok(ProgramAccountState {
-                is_initialized,
-                btree_storage: data_dser,
-            })
+                btree_storage: btree_map,
+            }),
+            Err(_) => Err(ProgramError::InvalidAccountData),
         }
     }
 }

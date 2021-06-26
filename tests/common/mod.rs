@@ -2,8 +2,9 @@
 
 use {
     cli_program_template::prelude::{
-        get_account_for, load_account, load_wallet, ACCOUNT_STATE_SPACE, KEYS_DB, PROG_KEY,
+        get_account_for, load_account, load_wallet, KEYS_DB, PROG_KEY,
     },
+    sol_template_shared::ACCOUNT_STATE_SPACE,
     solana_client::rpc_client::RpcClient,
     solana_sdk::{
         commitment_config::CommitmentConfig,

@@ -1,11 +1,8 @@
 //! Transaction testing and debugging
 
-use arrayref::*;
-use borsh::{BorshDeserialize, BorshSerialize};
-use solana_cli_template_program_bpf::{
-    account_state::{ACCOUNT_STATE_SPACE, BTREE_LENGTH, BTREE_STORAGE, INITIALIZED_BYTES},
-    processor::process,
-};
+use borsh::BorshSerialize;
+use sol_template_shared::{unpack_from_slice, ACCOUNT_STATE_SPACE};
+use solana_cli_template_program_bpf::processor::process;
 use solana_program::hash::Hash;
 use solana_program_test::*;
 use solana_sdk::{
@@ -16,7 +13,6 @@ use solana_sdk::{
     transaction::Transaction,
     transport::TransportError,
 };
-use std::{collections::BTreeMap, error::Error};
 
 /// Sets up the Program test and initializes 'n' program_accounts
 async fn setup(program_id: &Pubkey, program_accounts: &[Pubkey]) -> (BanksClient, Keypair, Hash) {
@@ -59,35 +55,6 @@ async fn submit_txn(
     );
     transaction.sign(&[payer], recent_blockhash);
     banks_client.process_transaction(transaction).await
-}
-
-/// Unpack state data for verification
-#[allow(clippy::ptr_offset_with_cast)]
-fn unpack_from_slice(src: &[u8]) -> Result<(bool, BTreeMap<String, String>), Box<dyn Error>> {
-    let src = array_ref![src, 0, ACCOUNT_STATE_SPACE];
-    // Setup pointers to key areas of account state data
-    let (is_initialized_src, data_len_src, data_src) =
-        array_refs![src, INITIALIZED_BYTES, BTREE_LENGTH, BTREE_STORAGE];
-
-    let is_initialized = match is_initialized_src {
-        [0] => false,
-        [1] => true,
-        _ => {
-            return Err(Box::<dyn Error>::from(format!(
-                "unrecognized initialization flag \"{:?}\". in account",
-                is_initialized_src
-            )))
-        }
-    };
-    // Get current size of content in data area
-    let data_len = u32::from_le_bytes(*data_len_src) as usize;
-    // If emptry, create a default
-    if data_len == 0 {
-        Ok((is_initialized, BTreeMap::<String, String>::new()))
-    } else {
-        let data_dser = BTreeMap::<String, String>::try_from_slice(&data_src[0..data_len]).unwrap();
-        Ok((is_initialized, data_dser))
-    }
 }
 
 #[tokio::test]

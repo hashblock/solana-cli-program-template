@@ -10,7 +10,6 @@ license = "WTFPL"
 no-entrypoint = []
 
 [dependencies]
-arrayref = "0.3.6"
 bincode = "1.3.1"
 borsh = "0.9.0"
 lazy_static = "1.4.0"
@@ -18,6 +17,7 @@ num-derive = "0.3"
 num_enum = "0.5.1"
 num-integer = "0.1.44"
 num-traits = "0.2"
+sol-template-shared = {path = "../shared"}
 solana-program = "=1.7.3"
 thiserror = "1.0"
 
