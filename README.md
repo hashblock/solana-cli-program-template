@@ -12,6 +12,11 @@ It provides multiple pieces of functionality:
 
 `solana-cli-program template` is a derived work inspired by @mvines [solana-cli-template](https://github.com/mvines/solana-cli-template)
 
+## Structure
+A functional macro level view
+
+![framework](/images/solana-cli-program-template.png)
+
 ## Quick start
 1. Install Rust from https://rustup.rs/
 2. Clone this repo
