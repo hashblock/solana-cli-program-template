@@ -49,7 +49,7 @@ pub fn load_user_wallets<'a>(
         if let Some(_account) = get_account_for(rpc_client, &wallet.pubkey(), commitment_config) {
             wallets.push(wallet);
         } else {
-            let result = load_wallet(&rpc_client, wallet, funding_source, commitment_config);
+            let result = load_wallet(rpc_client, wallet, funding_source, commitment_config);
             assert!(result.is_ok());
             wallets.push(wallet);
         }
@@ -71,7 +71,7 @@ pub fn load_and_initialize_accounts<'a>(
             accounts.push(account);
         } else {
             let result = load_account(
-                &rpc_client,
+                rpc_client,
                 account,
                 wallet,
                 &PROG_KEY.pubkey(),

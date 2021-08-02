@@ -35,7 +35,7 @@ pub fn get_account_for(
     account: &Pubkey,
     commitment_config: CommitmentConfig,
 ) -> Option<Account> {
-    account_for_key(rpc_client, &account, commitment_config)
+    account_for_key(rpc_client, account, commitment_config)
 }
 
 /// Fund a wallet by transferring rent-free amount from core account

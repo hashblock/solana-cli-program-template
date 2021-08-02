@@ -100,8 +100,8 @@ fn mint_keypair_to_account_with_fee(
     let program_account = next_account_info(account_info_iter)?;
     let service_account = next_account_info(account_info_iter)?;
     charge_service_fee(
-        &program_account,
-        &service_account,
+        program_account,
+        service_account,
         SampleServiceFees::Minting as u64,
     )?;
     // Invoke the actual mint
@@ -141,14 +141,14 @@ fn transfer_keypair_to_account_with_fee(accounts: &[AccountInfo], key: String) -
 
     // Cost to "from account"
     charge_service_fee(
-        &from_account,
-        &service_account,
+        from_account,
+        service_account,
         SampleServiceFees::Transfering as u64,
     )?;
     // Cost to "to account"
     charge_service_fee(
-        &to_account,
-        &service_account,
+        to_account,
+        service_account,
         SampleServiceFees::Minting as u64,
     )?;
     // Invoke the actual transfer
@@ -177,8 +177,8 @@ fn burn_keypair_from_account_with_fee(accounts: &[AccountInfo], key: String) -> 
     let service_account = next_account_info(account_info_iter)?;
     // Charge for service
     charge_service_fee(
-        &program_account,
-        &service_account,
+        program_account,
+        service_account,
         SampleServiceFees::Burning as u64,
     )?;
     // Invoke the actual burn

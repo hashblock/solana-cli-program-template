@@ -49,10 +49,10 @@ fn validate_user_accounts_and_load<'a>(
     // Check in KEYS_DB for owner
     let (wallet, account) = KEYS_DB.wallet_and_account(owner.to_string())?;
     // Fund wallet if required
-    load_wallet(&rpc_client, wallet, funding_source, commitment_config)?;
+    load_wallet(rpc_client, wallet, funding_source, commitment_config)?;
     // Create and initialize account if required
     load_account(
-        &rpc_client,
+        rpc_client,
         account,
         wallet,
         &PROG_KEY.pubkey(),
@@ -93,7 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     .to_string(),
             ),
             default_signer: default_signer
-                .signer_from_path(&matches, &mut wallet_manager)
+                .signer_from_path(matches, &mut wallet_manager)
                 .unwrap_or_else(|err| {
                     eprintln!("error: {}", err);
                     exit(1);
@@ -179,7 +179,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     AccountMeta::new(from_wallet.pubkey(), true),
                 ],
                 from_wallet,
-                &key,
+                key,
                 Instructions::FreeTransfer as u8,
                 config.commitment_config,
             )?;
@@ -208,7 +208,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     AccountMeta::new(wallet.pubkey(), true),
                 ],
                 wallet,
-                &key,
+                key,
                 Instructions::FreeBurn as u8,
                 config.commitment_config,
             )?;
