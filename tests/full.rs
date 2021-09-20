@@ -15,13 +15,11 @@ use {
     },
     common::{clean_ledger_setup_validator, load_and_initialize_accounts, load_user_wallets},
     solana_sdk::{commitment_config::CommitmentConfig, instruction::AccountMeta, signer::Signer},
-    solana_streamer::socket::SocketAddrSpace,
 };
 
 #[test]
 fn test_initialization_pass() {
-    let (test_validator, _initial_keypair) =
-        clean_ledger_setup_validator().start(SocketAddrSpace::Global);
+    let (test_validator, _initial_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
     let acc = get_account_for(&rpc_client, &PROG_KEY.pubkey(), cc);
@@ -30,8 +28,7 @@ fn test_initialization_pass() {
 
 #[test]
 fn test_wallet_loading_pass() {
-    let (test_validator, funding_keypair) =
-        clean_ledger_setup_validator().start(SocketAddrSpace::Global);
+    let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
@@ -40,8 +37,7 @@ fn test_wallet_loading_pass() {
 
 #[test]
 fn test_wallet_and_account_initialization_pass() {
-    let (test_validator, funding_keypair) =
-        clean_ledger_setup_validator().start(SocketAddrSpace::Global);
+    let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
@@ -57,8 +53,7 @@ fn test_wallet_and_account_initialization_pass() {
 
 #[test]
 fn test_load_mint_transfer_burn_no_fee_pass() {
-    let (test_validator, funding_keypair) =
-        clean_ledger_setup_validator().start(SocketAddrSpace::Global);
+    let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
@@ -130,8 +125,7 @@ fn test_load_mint_transfer_burn_no_fee_pass() {
 
 #[test]
 fn test_load_mint_transfer_burn_with_fee_pass() {
-    let (test_validator, funding_keypair) =
-        clean_ledger_setup_validator().start(SocketAddrSpace::Global);
+    let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
@@ -231,8 +225,7 @@ fn test_load_mint_transfer_burn_with_fee_pass() {
 
 #[test]
 fn test_mint_transfer_burn_fail() {
-    let (test_validator, funding_keypair) =
-        clean_ledger_setup_validator().start(SocketAddrSpace::Global);
+    let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
     let (rpc_client, _, _) = test_validator.rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
