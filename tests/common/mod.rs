@@ -16,7 +16,7 @@ use {
 };
 
 const LEDGER_PATH: &str = "./.ledger";
-const PROG_PATH: &str = "program/target/bpfel-unknown-unknown/release/";
+const PROG_PATH: &str = "target/deploy/";
 const PROG_NAME: &str = "solana_cli_template_program_bpf";
 
 /// Setup the test validator with predefined properties
