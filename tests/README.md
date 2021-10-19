@@ -19,7 +19,7 @@ The following describe the individual modules and intent:
 2. `tests/thin.rs` (a.k.a. Local) - Assumes that you've either started the `solana-test-validator` locally or your configuration is pointing to one of the solana networks which have the program already deployed. The same tests that are run in `tests/full.rs` are run here.
 For example; To test locally with the `solana-test-validator`:
 ```
-solana-test-validator --bpf-program SampGgdt3wioaoMZhC6LTSbg4pnuvQnSfJpDYeuXQBv ~/solana-cli-program-template/program/target/bpfel-unknown-unknown/release/solana_cli_template_program_bpf.so --ledger ~/solana-cli-program-template/.ledger --reset
+solana-test-validator --bpf-program SampGgdt3wioaoMZhC6LTSbg4pnuvQnSfJpDYeuXQBv ~/solana-cli-program-template/target/deploy/solana_cli_template_program_bpf.so --ledger ~/solana-cli-program-template/.ledger --reset
 ```
 
 ## Invocations
