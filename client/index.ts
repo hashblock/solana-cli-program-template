@@ -1,0 +1,1 @@
+export { loadKeypair } from './keyfile';
