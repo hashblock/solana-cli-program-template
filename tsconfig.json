@@ -1,0 +1,25 @@
+{
+    "extends": "@tsconfig/recommended/tsconfig.json",
+    "compilerOptions": {
+        "target": "es5",
+        "module": "commonjs",
+        "outDir": ".dist/client",
+        "sourceMap": true,
+        "noImplicitAny": false,
+        "strictNullChecks": false,
+        "baseUrl": ".",
+        "paths": {
+            "*": [
+                "node_modules/*",
+                "src/@types/*"
+            ]
+        }
+    },
+    "include": [
+        "client/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        ".vscode"
+    ]
+}
