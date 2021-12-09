@@ -1,5 +1,6 @@
 import 'mocha';
 import { expect } from 'chai';
+import { serialize, deserialize, BinaryWriter } from 'borsh';
 
 import { Keypair, PublicKey } from '@solana/web3.js';
 import BufferLayout from 'buffer-layout';
@@ -8,4 +9,7 @@ describe('Sample Program', async () => {
     const progfile = process.cwd() + progpath
     const progpair: Keypair = await loadKeypair(progfile)
     console.log(progpair.publicKey)
+
+    console.log()
+
 });

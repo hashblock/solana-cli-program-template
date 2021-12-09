@@ -13,6 +13,12 @@ use solana_sdk::{
     transaction::Transaction,
     transport::TransportError,
 };
+#[derive(BorshSerialize)]
+pub struct Payload<'a> {
+    variant: u8,
+    key: &'a str,
+    value: &'a str,
+}
 
 /// Sets up the Program test and initializes 'n' program_accounts
 async fn setup(program_id: &Pubkey, program_accounts: &[Pubkey]) -> (BanksClient, Keypair, Hash) {
@@ -39,7 +45,7 @@ async fn setup(program_id: &Pubkey, program_accounts: &[Pubkey]) -> (BanksClient
 #[allow(clippy::ptr_arg)]
 async fn submit_txn(
     program_id: &Pubkey,
-    instruction_data: &Vec<Vec<u8>>,
+    instruction_data: &Payload<'_>,
     accounts: &[AccountMeta],
     payer: &dyn Signer,
     recent_blockhash: Hash,
@@ -73,11 +79,11 @@ async fn test_initialize_pass() {
         None => panic!(),
     };
     assert!(!is_initialized);
-
-    // Initialize the account
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let initialize = vec![0u8];
-    instruction_data.push(initialize);
+    let instruction_data = Payload {
+        variant: 0,
+        key: "",
+        value: "",
+    };
     let result = submit_txn(
         &program_id,
         &instruction_data,
@@ -106,9 +112,11 @@ async fn test_mint_pass() {
     let (mut banks_client, payer, recent_blockhash) = setup(&program_id, &[account_pubkey]).await;
 
     // Initialize the account
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let initialize = vec![0u8];
-    instruction_data.push(initialize);
+    let instruction_data = Payload {
+        variant: 0,
+        key: "",
+        value: "",
+    };
     let result = submit_txn(
         &program_id,
         &instruction_data,
@@ -123,12 +131,11 @@ async fn test_mint_pass() {
     // Do mint
     let mint_key = String::from("test_key_1");
     let mint_value = String::from("value for test_key_1");
-
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let mint = vec![1u8];
-    instruction_data.push(mint);
-    instruction_data.push(String::try_to_vec(&mint_key).unwrap());
-    instruction_data.push(String::try_to_vec(&mint_value).unwrap());
+    let instruction_data = Payload {
+        variant: 1u8,
+        key: "test_key_1",
+        value: "value for test_key_1",
+    };
 
     let result = submit_txn(
         &program_id,
@@ -163,9 +170,12 @@ async fn test_mint_transfer_pass() {
         setup(&program_id, &[start_pubkey, target_pubkey]).await;
 
     // Initialize the account(s)
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let initialize = vec![0u8];
-    instruction_data.push(initialize);
+    let instruction_data = Payload {
+        variant: 0u8,
+        key: "",
+        value: "",
+    };
+
     let result = submit_txn(
         &program_id,
         &instruction_data,
@@ -186,15 +196,14 @@ async fn test_mint_transfer_pass() {
     )
     .await;
     assert!(result.is_ok());
-
-    // Do mint
     let mint_key = String::from("test_key_1");
     let mint_value = String::from("value for test_key_1");
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let mint = vec![1u8];
-    instruction_data.push(mint);
-    instruction_data.push(String::try_to_vec(&mint_key).unwrap());
-    instruction_data.push(String::try_to_vec(&mint_value).unwrap());
+    // Do mint
+    let instruction_data = Payload {
+        variant: 1u8,
+        key: &mint_key,
+        value: &mint_value,
+    };
 
     let result = submit_txn(
         &program_id,
@@ -208,10 +217,11 @@ async fn test_mint_transfer_pass() {
     assert!(result.is_ok());
 
     // Do transfer
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let mint = vec![2u8];
-    instruction_data.push(mint);
-    instruction_data.push(String::try_to_vec(&mint_key).unwrap());
+    let instruction_data = Payload {
+        variant: 2u8,
+        key: &mint_key,
+        value: "",
+    };
     let result = submit_txn(
         &program_id,
         &instruction_data,
@@ -254,9 +264,12 @@ async fn test_mint_transfer_burn_pass() {
         setup(&program_id, &[start_pubkey, target_pubkey]).await;
 
     // Initialize the account(s)
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let initialize = vec![0u8];
-    instruction_data.push(initialize);
+    let instruction_data = Payload {
+        variant: 0u8,
+        key: "",
+        value: "",
+    };
+
     let result = submit_txn(
         &program_id,
         &instruction_data,
@@ -281,11 +294,11 @@ async fn test_mint_transfer_burn_pass() {
     // Do mint
     let mint_key = String::from("test_key_1");
     let mint_value = String::from("value for test_key_1");
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let mint = vec![1u8];
-    instruction_data.push(mint);
-    instruction_data.push(String::try_to_vec(&mint_key).unwrap());
-    instruction_data.push(String::try_to_vec(&mint_value).unwrap());
+    let instruction_data = Payload {
+        variant: 1u8,
+        key: &mint_key,
+        value: &mint_value,
+    };
 
     let result = submit_txn(
         &program_id,
@@ -299,10 +312,12 @@ async fn test_mint_transfer_burn_pass() {
     assert!(result.is_ok());
 
     // Do transfer
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let transfer = vec![2u8];
-    instruction_data.push(transfer);
-    instruction_data.push(String::try_to_vec(&mint_key).unwrap());
+    let instruction_data = Payload {
+        variant: 2u8,
+        key: &mint_key,
+        value: "",
+    };
+
     let result = submit_txn(
         &program_id,
         &instruction_data,
@@ -318,10 +333,12 @@ async fn test_mint_transfer_burn_pass() {
     assert!(result.is_ok());
 
     // Do the burn
-    let mut instruction_data = Vec::<Vec<u8>>::new();
-    let burn = vec![3u8];
-    instruction_data.push(burn);
-    instruction_data.push(String::try_to_vec(&mint_key).unwrap());
+    let instruction_data = Payload {
+        variant: 3u8,
+        key: &mint_key,
+        value: "",
+    };
+
     let result = submit_txn(
         &program_id,
         &instruction_data,

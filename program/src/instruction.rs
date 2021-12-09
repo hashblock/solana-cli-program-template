@@ -16,33 +16,34 @@ pub enum ProgramInstruction {
     BurnFromAccountWithFee { key: String },
 }
 
+/// Generic Payload Deserialization
+#[derive(BorshDeserialize, Debug)]
+struct Payload {
+    variant: u8,
+    arg1: String,
+    arg2: String,
+}
+
 impl ProgramInstruction {
     /// Unpack inbound buffer to associated Instruction
     /// The expected format for input is a Borsh serialized vector
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
-        let block = Vec::<Vec<u8>>::try_from_slice(input).unwrap();
-        match block[0][0] {
+        let payload = Payload::try_from_slice(input).unwrap();
+        // let block = Vec::<Vec<u8>>::try_from_slice(input).unwrap();
+        match payload.variant {
             0 => Ok(ProgramInstruction::InitializeAccount),
             1 => Ok(Self::MintToAccount {
-                key: String::try_from_slice(&block[1])?,
-                value: String::try_from_slice(&block[2])?,
+                key: payload.arg1,
+                value: payload.arg2,
             }),
-            2 => Ok(Self::TransferBetweenAccounts {
-                key: String::try_from_slice(&block[1])?,
-            }),
-            3 => Ok(Self::BurnFromAccount {
-                key: String::try_from_slice(&block[1])?,
-            }),
+            2 => Ok(Self::TransferBetweenAccounts { key: payload.arg1 }),
+            3 => Ok(Self::BurnFromAccount { key: payload.arg1 }),
             4 => Ok(Self::MintToAccountWithFee {
-                key: String::try_from_slice(&block[1])?,
-                value: String::try_from_slice(&block[2])?,
+                key: payload.arg1,
+                value: payload.arg2,
             }),
-            5 => Ok(Self::TransferBetweenAccountsWithFee {
-                key: String::try_from_slice(&block[1])?,
-            }),
-            6 => Ok(Self::BurnFromAccountWithFee {
-                key: String::try_from_slice(&block[1])?,
-            }),
+            5 => Ok(Self::TransferBetweenAccountsWithFee { key: payload.arg1 }),
+            6 => Ok(Self::BurnFromAccountWithFee { key: payload.arg1 }),
             _ => Err(SampleError::DeserializationFailure.into()),
         }
     }

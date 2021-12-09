@@ -17,6 +17,13 @@ use {
     },
 };
 
+#[derive(BorshSerialize)]
+pub struct Payload<'a> {
+    variant: u8,
+    key: &'a str,
+    value: &'a str,
+}
+
 /// Checks for existence of account
 fn account_for_key(
     rpc_client: &RpcClient,
@@ -103,7 +110,11 @@ fn new_account(
         .get_minimum_balance_for_rent_exemption(state_space as usize)
         .unwrap();
 
-    let instruction_data = vec![vec![initialize_instruction_id]];
+    let instruction_data = Payload {
+        variant: initialize_instruction_id,
+        key: "",
+        value: "",
+    };
 
     let mut transaction = Transaction::new_with_payer(
         &[
@@ -204,11 +215,11 @@ pub fn mint_transaction(
     mint_instruction_id: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<Signature, Box<dyn std::error::Error>> {
-    let data = vec![
-        vec![mint_instruction_id],
-        mint_key.try_to_vec().unwrap(),
-        mint_value.try_to_vec().unwrap(),
-    ];
+    let data = Payload {
+        variant: mint_instruction_id,
+        key: mint_key,
+        value: mint_value,
+    };
     let instruction = Instruction::new_with_borsh(PROG_KEY.pubkey(), &data, accounts.to_vec());
     submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)
 }
@@ -222,10 +233,11 @@ pub fn transfer_instruction(
     transfer_instruction_id: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<Signature, Box<dyn std::error::Error>> {
-    let data = vec![
-        vec![transfer_instruction_id],
-        transfer_key.try_to_vec().unwrap(),
-    ];
+    let data = Payload {
+        variant: transfer_instruction_id,
+        key: transfer_key,
+        value: "",
+    };
     let instruction = Instruction::new_with_borsh(PROG_KEY.pubkey(), &data, accounts.to_vec());
     submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)
 }
@@ -239,7 +251,12 @@ pub fn burn_instruction(
     burn_instruction_id: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<Signature, Box<dyn std::error::Error>> {
-    let data = vec![vec![burn_instruction_id], burn_key.try_to_vec().unwrap()];
+    let data = Payload {
+        variant: burn_instruction_id,
+        key: burn_key,
+        value: "",
+    };
+
     let instruction = Instruction::new_with_borsh(PROG_KEY.pubkey(), &data, accounts.to_vec());
     submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)
 }
@@ -256,4 +273,57 @@ pub fn ping_instruction(
         system_instruction::transfer(&signer.pubkey(), &signer.pubkey(), amount),
         commitment_config,
     )
+}
+
+#[cfg(test)]
+mod tests {
+    use std::convert::TryFrom;
+
+    use borsh::{BorshDeserialize, BorshSerialize};
+    #[test]
+    fn test_borsh_stuff() {
+        #[derive(BorshSerialize)]
+        struct Payload<'a> {
+            variant: u8,
+            key: &'a str,
+            value: &'a str,
+        }
+        #[derive(BorshDeserialize, Debug)]
+        struct InBound {
+            variant: u8,
+            arg1: String,
+            arg2: String,
+        }
+        let data_mint = Payload {
+            variant: 1,
+            key: "key",
+            value: "value",
+        };
+        let faux_transfer = Payload {
+            variant: 2,
+            key: "key",
+            value: "",
+        };
+
+        let faux_burn = Payload {
+            variant: 3,
+            key: "key",
+            value: "",
+        };
+
+        let mser = data_mint.try_to_vec().unwrap();
+        println!("Mint {:?}", mser);
+        let mdser = InBound::try_from_slice(&mser).unwrap();
+        println!("Unmint {:?}", mdser);
+
+        let mser = faux_transfer.try_to_vec().unwrap();
+        println!("Transfer {:?}", mser);
+        let mdser = InBound::try_from_slice(&mser).unwrap();
+        println!("Untransfer {:?}", mdser);
+
+        let mser = faux_burn.try_to_vec().unwrap();
+        println!("Burn {:?}", mser);
+        let mdser = InBound::try_from_slice(&mser).unwrap();
+        println!("Unburn {:?}", mdser);
+    }
 }
