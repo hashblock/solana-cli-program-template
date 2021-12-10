@@ -1,15 +1,27 @@
 import 'mocha';
 import { expect } from 'chai';
-import { serialize, deserialize, BinaryWriter } from 'borsh';
 
-import { Keypair, PublicKey } from '@solana/web3.js';
-import BufferLayout from 'buffer-layout';
-import { loadKeypair, progpath } from './keyfile';
+import { Keypair, PublicKey, Connection, clusterApiUrl } from '@solana/web3.js';
+import { getProgramKeys, getUser1Keys, getUser1Wallet } from './keyfile';
+import {
+    mintKV
+} from "./lib.js"
+
 describe('Sample Program', async () => {
-    const progfile = process.cwd() + progpath
-    const progpair: Keypair = await loadKeypair(progfile)
-    console.log(progpair.publicKey)
+    const progpair: Keypair = await getProgramKeys(process.cwd())
+    const user1Account: Keypair = await getUser1Keys(process.cwd())
+    const user1Wallet: Keypair = await getUser1Wallet(process.cwd())
 
-    console.log()
+    const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
+
+    let result = await mintKV(
+        connection,
+        progpair.publicKey,
+        user1Account.publicKey,
+        user1Wallet,
+        "ts key",
+        "ts first value")
+
+    console.log(result)
 
 });
