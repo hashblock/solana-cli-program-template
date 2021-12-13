@@ -25,7 +25,7 @@ class Assignable {
 class Payload extends Assignable { }
 
 // Borsh needs a schema describing the payload
-const schema = new Map([
+const payloadSchema = new Map([
     [
         Payload,
         {
@@ -38,6 +38,36 @@ const schema = new Map([
         }
     ]
 ]);
+
+export class AccoundData extends Assignable { }
+
+const dataSchema = new Map([
+    [
+        AccoundData,
+        {
+            kind: "struct",
+            fields: [
+                ["initialized", "u8"],
+                ["tree_length", "u32"],
+                ["map", { kind: 'map', key: 'string', value: 'string' }]
+            ]
+        }
+    ]
+]);
+
+/**
+ * Fetch program account data
+ * @param {Connection} connection - Solana RPC connection
+ * @param {Keypair} wallet - Wallet for signing and payment
+ * @return {Promise<AccoundData>} - Keypair
+ */
+export async function getAccountData(connection: Connection, account: Keypair): Promise<AccoundData> {
+    let nameAccount = await connection.getAccountInfo(
+        account.publicKey,
+        'processed'
+    );
+    return borsh.deserializeUnchecked(dataSchema, AccoundData, nameAccount.data)
+}
 
 // Instruction variant indexes
 enum InstructionVariant {
@@ -57,7 +87,6 @@ enum InstructionVariant {
  * @param {string} mintValue - The value being minted
  * @return {Promise<Keypair>} - Keypair
  */
-
 export async function mintKV(
     connection: Connection,
     progId: PublicKey,
@@ -75,7 +104,7 @@ export async function mintKV(
     });
 
     // Serialize the payload
-    const mintSerBuf = borsh.serialize(schema, mint);
+    const mintSerBuf = borsh.serialize(payloadSchema, mint);
 
     // Create Solana Instruction
     const instruction = new TransactionInstruction({

@@ -2,7 +2,7 @@
   "name": "ts-program-template",
   "version": "0.1.0",
   "description": "Sample TS App",
-  "main": "client/nmain.ts",
+  "main": "client/main.ts",
   "author": "",
   "keywords": [],
   "workspace": "client/",
@@ -12,10 +12,9 @@
   },
   "homepage": "https: //github.com/hashblock/solana-cli-program-template",
   "scripts": {
-    "test:all": "npm run build:client && npm run test:client",
     "build:client": "rm -rf ./.dist/client && tsc ",
-    "start": "node ./node_modules/.bin/mocha .dist/client/main.js",
-    "test:client": "npm run start",
+    "start:client": "npm run build:client && node -r ts-node/register client/main.ts",
+    "test:client": "npm run build:client && mocha -r ts-node/register client/tests/**/*",
     "lint": "eslint --ext .ts client/* && prettier --check \"client/**/*.ts\"",
     "lint:fix": "eslint --ext .ts client/* --fix",
     "pretty": "prettier --write '{,client/**/}*.ts'"
@@ -28,6 +27,7 @@
     "@types/mkdirp": "^1.0.2",
     "@types/mocha": "^9.0.0",
     "@types/prettier": "^2.4.1",
+    "@types/yargs": "^17.0.7",
     "@typescript-eslint/eslint-plugin": "^5.6.0",
     "@typescript-eslint/parser": "^5.6.0",
     "chai": "^4.3.4",
@@ -44,12 +44,15 @@
   },
   "dependencies": {
     "@solana/web3.js": "^1.31.0",
+    "base-58": "^0.0.1",
     "borsh": "^0.7.0",
     "env": "^0.0.2",
     "fs": "^0.0.1-security",
     "mkdirp": "^1.0.4",
     "npm-check-updates": "^12.0.3",
     "sync-request": "^6.1.0",
-    "update": "^0.4.2"
+    "ts-results": "^3.3.0",
+    "update": "^0.4.2",
+    "yargs": "^17.3.0"
   }
 }
