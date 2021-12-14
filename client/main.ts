@@ -1,6 +1,10 @@
 #!/usr/bin/env node
 
-import { try_to_pubkey } from './keyfile';
+import {
+    mint_keys_setup,
+    ValidMintOrBurnPair,
+    ValidTransferTriple
+} from './keyfile';
 import {
     AccoundData,
     getAccountData,
@@ -8,6 +12,9 @@ import {
 } from "./lib.js"
 import { Keypair, PublicKey, Connection, clusterApiUrl } from '@solana/web3.js';
 
+/**
+ * Entry point for script
+ */
 async function entry() {
     const yargs = require('yargs/yargs')(process.argv.slice(2));
     const argv = yargs
@@ -22,10 +29,26 @@ async function entry() {
                     describe: 'Value of key value pair used by command',
                 })
         }, async (argv) => {
-            const mintKey = await try_to_pubkey(argv.base)
-            if (mintKey) {
-                console.log('doing mint ', argv.url, ' key:', argv.key, ' value:', argv.value, ' to:', argv.base)
+            let wallstring: string = null
+            if ((argv.base === 'user1' || argv.base === 'user2') && argv.wallet == null) {
+                wallstring = argv.base
             }
+            else if (argv.wallet) {
+                wallstring = argv.wallet
+            }
+            else {
+                console.log("Need '-w' or '--wallet' argument specified")
+                return
+            }
+            const result = await mint_keys_setup(argv.base, wallstring)
+            if (result.ok)
+                console.log('doing mint', argv.url,
+                    'key:', argv.key,
+                    'value:', argv.value,
+                    'to:', argv.base,
+                    'using wallet: ', wallstring)
+            else
+                console.log(result.val)
         })
 
         // Transfer
@@ -49,8 +72,16 @@ async function entry() {
             alias: 'base',
             demandOption: true,
             global: true,
-            describe: 'Can be Base58 account string or ' +
+            describe: "Required account 'mint', 'transfer' or 'burn'. Can be Base58 account string or " +
                 'keyfile path or ' +
+                'user1 or user2 (from sample keys in repo)',
+        })
+        .option('w', {
+            alias: 'wallet',
+            demandOption: false,
+            global: true,
+            describe: "If not specifying 'user1' or 'user2' as 'base' or 'to' options this is required " +
+                'Can be keyfile path or ' +
                 'user1 or user2 (from sample keys in repo)',
         })
         .option('u', {
@@ -59,6 +90,7 @@ async function entry() {
             demandOption: true,
             describe: 'Specify Solana RPC url',
             choices: ['localnet', 'devnet'],
+            default: 'localnet',
             type: 'string',
         })
         .option('k', {

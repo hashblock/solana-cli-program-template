@@ -277,8 +277,6 @@ pub fn ping_instruction(
 
 #[cfg(test)]
 mod tests {
-    use std::convert::TryFrom;
-
     use borsh::{BorshDeserialize, BorshSerialize};
     #[test]
     fn test_borsh_stuff() {

@@ -235,6 +235,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 #[cfg(test)]
 mod test {
+    use borsh::{BorshDeserialize, BorshSerialize};
+    use solana_sdk::pubkey::Pubkey;
 
     use {super::*, solana_validator::test_validator::*};
 
@@ -247,5 +249,25 @@ mod test {
             ping_instruction(&rpc_client, &payer, CommitmentConfig::confirmed()),
             Ok(_)
         ));
+    }
+
+    #[test]
+    fn test_borsh() {
+        #[repr(C)]
+        #[derive(BorshSerialize, BorshDeserialize, PartialEq, Debug, Clone)]
+        pub struct UpdateMetadataAccountArgs {
+            pub data: Option<String>,
+            pub update_authority: Option<Pubkey>,
+            pub primary_sale_happened: Option<bool>,
+        }
+        let faux = UpdateMetadataAccountArgs {
+            data: Some(String::from("This")),
+            update_authority: Some(Pubkey::default()),
+            primary_sale_happened: Some(true),
+        };
+        let bout = faux.try_to_vec().unwrap();
+        println!("{:?}", bout);
+        let in_faux = UpdateMetadataAccountArgs::try_from_slice(&bout).unwrap();
+        println!("{:?}", in_faux);
     }
 }
