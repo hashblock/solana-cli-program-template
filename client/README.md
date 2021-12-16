@@ -13,7 +13,7 @@ From the repo root folder install the node dependencies:
 The sample program the script interacts with is already deployed as are various account keys that are also on devnet. This is the default network but the [command line](#script-help) lets you change to `localnet`
 
 ### localnet
-Refer to the building and running of the sample program found in XXXX.md
+Refer to the building and running of the [sample program](../src/README.md)
 
 ## Running the Node Script
 
@@ -40,17 +40,23 @@ Command specific help
 With Node: This runs on 'devnet' and mints key: 'newKey' and value: 'A new value' to: 'user1' from sample keys
 
 `npm run do:MintUser1`
+
 `npm run do:DataUser1`
 
 #### Transfer a key/value pair
 With Node: This runs on 'devnet' and transfers key: 'newKey' (and value) from: 'user1' to 'user2'
 
 `npm run do:TransferUser1To2`
+
 `npm run do:DataUser1`
+
 `npm run do:DataUser2`
 
 #### Burn a key/value pair
 With Node: This runs on 'devnet' and burns key: 'newKey' from: 'user2'
+
 `npm run do:BurnUser2`
+
 `npm run do:DataUser1`
+
 `npm run do:DataUser2`
