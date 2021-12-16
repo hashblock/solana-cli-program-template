@@ -2,14 +2,18 @@
 
 import {
     mint_keys_setup,
-    ValidMintOrBurnPair,
-    ValidTransferTriple
+    getProgramKeys,
+    transfer_keys_setup,
+    burn_keys_setup,
+    try_to_pubkey
 } from './keyfile';
 import {
     AccoundData,
+    burnK,
     getAccountData,
-    mintKV
-} from "./lib.js"
+    mintKV,
+    transferKV
+} from "./lib"
 import { Keypair, PublicKey, Connection, clusterApiUrl } from '@solana/web3.js';
 
 /**
@@ -41,12 +45,22 @@ async function entry() {
                 return
             }
             const result = await mint_keys_setup(argv.base, wallstring)
-            if (result.ok)
-                console.log('doing mint', argv.url,
-                    'key:', argv.key,
-                    'value:', argv.value,
-                    'to:', argv.base,
-                    'using wallet: ', wallstring)
+            if (result.ok) {
+                let [userAccount, userWallet] = result.val
+                let programKeys = await getProgramKeys(process.cwd())
+                if (programKeys.ok) {
+                    const connection = new Connection(clusterApiUrl(argv.url), "confirmed");
+                    let result = await mintKV(
+                        connection,
+                        programKeys.val.publicKey,
+                        userAccount,
+                        userWallet,
+                        argv.key,
+                        argv.value)
+                }
+                else
+                    console.log(programKeys.val)
+            }
             else
                 console.log(result.val)
         })
@@ -59,14 +73,71 @@ async function entry() {
                     demandOption: true,
                     describe: 'Address to transfer key value to',
                 })
-        }, (argv) => {
-            console.log("transfer ", argv.url, ' key:', argv.key, ' from:', argv.base, ' to:', argv.to)
+        }, async (argv) => {
+            let wallstring: string = null
+            if ((argv.base === 'user1' || argv.base === 'user2') && argv.wallet == null) {
+                wallstring = argv.base
+            }
+            else if (argv.wallet) {
+                wallstring = argv.wallet
+            }
+            else {
+                console.log("Need '-w' or '--wallet' argument specified")
+                return
+            }
+            const result = await transfer_keys_setup(argv.base, argv.to, wallstring)
+            if (result.ok) {
+                let [userFromAccount, userToAccount, userWallet] = result.val
+                let programKeys = await getProgramKeys(process.cwd())
+                if (programKeys.ok) {
+                    const connection = new Connection(clusterApiUrl(argv.url), "confirmed");
+                    let result = await transferKV(
+                        connection,
+                        programKeys.val.publicKey,
+                        userFromAccount,
+                        userToAccount,
+                        userWallet,
+                        argv.key)
+                }
+                else
+                    console.log(programKeys.val)
+            }
+            else
+                console.log(result.val)
         })
 
         // Burn
         .command('burn', 'Burn a key value pair from an account', () => {
-        }, (argv) => {
-            console.log('burn ', argv.url, ' key:', argv.key, ' from:', argv.base)
+        }, async (argv) => {
+            let wallstring: string = null
+            if ((argv.base === 'user1' || argv.base === 'user2') && argv.wallet == null) {
+                wallstring = argv.base
+            }
+            else if (argv.wallet) {
+                wallstring = argv.wallet
+            }
+            else {
+                console.log("Need '-w' or '--wallet' argument specified")
+                return
+            }
+            const result = await burn_keys_setup(argv.base, wallstring)
+            if (result.ok) {
+                let [userAccount, userWallet] = result.val
+                let programKeys = await getProgramKeys(process.cwd())
+                if (programKeys.ok) {
+                    const connection = new Connection(clusterApiUrl(argv.url), "confirmed");
+                    let result = await burnK(
+                        connection,
+                        programKeys.val.publicKey,
+                        userAccount,
+                        userWallet,
+                        argv.key)
+                }
+                else
+                    console.log(programKeys.val)
+            }
+            else
+                console.log(result.val)
         })
         .option('b', {
             alias: 'base',
@@ -90,7 +161,7 @@ async function entry() {
             demandOption: true,
             describe: 'Specify Solana RPC url',
             choices: ['localnet', 'devnet'],
-            default: 'localnet',
+            default: 'devnet',
             type: 'string',
         })
         .option('k', {
@@ -102,32 +173,5 @@ async function entry() {
         })
         .argv;
 }
-
-// describe('Sample Program', async () => {
-//     const progpair: Keypair = await getProgramKeys(process.cwd())
-//     const user1Account: Keypair = await getUser1Keys(process.cwd())
-//     const user1Wallet: Keypair = await getUser1Wallet(process.cwd())
-
-//     const connection = new Connection(clusterApiUrl("devnet"), "confirmed");
-//     const tsKey = "ts key"
-//     const tsValue = "ts first value"
-
-// let result = await mintKV(
-//     connection,
-//     progpair.publicKey,
-//     user1Account.publicKey,
-//     user1Wallet,
-//     "ts key",
-//     "ts first value")
-
-// console.log(result)
-
-// let u1data: AccoundData = await getAccountData(connection, user1Account)
-// expect(u1data['initialized']).equal(1)
-// expect(u1data['tree_length']).equal(32)
-// expect(u1data["map"].size).equal(1)
-// expect(u1data["map"].get(tsKey)).equal(tsValue)
-// console.log(u1data)
-// });
 
 entry()

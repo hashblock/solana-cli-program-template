@@ -13,8 +13,12 @@
   "homepage": "https: //github.com/hashblock/solana-cli-program-template",
   "scripts": {
     "build:client": "rm -rf ./.dist/client && tsc ",
-    "start:client": "npm run build:client && node -r ts-node/register client/main.ts",
-    "test:client": "npm run build:client && mocha -r ts-node/register client/tests/**/*",
+    "test:client": "npm run build:client && mocha --timeout 999999 -r ts-node/register client/tests/**/*",
+    "do:MintUser1": "npm run build:client && ts-node client/main mint -b user1 -k newKey -v 'A new value'",
+    "do:TransferUser1To2": "npm run build:client && ts-node client/main transfer -b user1 -k newKey -t user2",
+    "do:BurnUser2": "npm run build:client && ts-node client/main burn -b user2 -k newKey",
+    "do:DataUser1": "npm run build:client && ts-node client/fetch data -b user1",
+    "do:DataUser2": "npm run build:client && ts-node client/fetch data -b user2",
     "lint": "eslint --ext .ts client/* && prettier --check \"client/**/*.ts\"",
     "lint:fix": "eslint --ext .ts client/* --fix",
     "pretty": "prettier --write '{,client/**/}*.ts'"

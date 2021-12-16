@@ -9,7 +9,7 @@ import {
 } from '../keyfile';
 import { Keypair, PublicKey } from '@solana/web3.js';
 import { assert } from 'chai';
-import 'mocha';
+import { describe } from 'mocha';
 
 describe("Keyfile testing", async () => {
 
@@ -61,7 +61,7 @@ describe("Keyfile testing", async () => {
                 console.log(result)
             })
             .catch(err => {
-                console.log("Unknown: ", err.path)
+
             })
     })
 });
