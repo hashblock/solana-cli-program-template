@@ -52,8 +52,8 @@ fn fund_wallet(
     signer: &dyn Signer,
     commitment_config: CommitmentConfig,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let (recent_blockhash, _fee_calculator) = rpc_client
-        .get_recent_blockhash()
+    let recent_blockhash = rpc_client
+        .get_latest_blockhash()
         .map_err(|err| format!("error: unable to get recent blockhash: {}", err))
         .unwrap();
 
@@ -137,8 +137,8 @@ fn new_account(
         Some(&wallet_signer.pubkey()),
     );
 
-    let (recent_blockhash, _fee_calculator) = rpc_client
-        .get_recent_blockhash()
+    let recent_blockhash = rpc_client
+        .get_latest_blockhash()
         .map_err(|err| format!("error: unable to get recent blockhash: {}", err))
         .unwrap();
     transaction
@@ -193,8 +193,8 @@ pub fn submit_transaction(
 ) -> Result<Signature, Box<dyn std::error::Error>> {
     let mut transaction =
         Transaction::new_unsigned(Message::new(&[instruction], Some(&wallet_signer.pubkey())));
-    let (recent_blockhash, _fee_calculator) = rpc_client
-        .get_recent_blockhash()
+    let recent_blockhash = rpc_client
+        .get_latest_blockhash()
         .map_err(|err| format!("error: unable to get recent blockhash: {}", err))?;
     transaction
         .try_sign(&vec![wallet_signer], recent_blockhash)
@@ -287,6 +287,7 @@ mod tests {
             value: &'a str,
         }
         #[derive(BorshDeserialize, Debug)]
+        #[allow(dead_code)]
         struct InBound {
             variant: u8,
             arg1: String,

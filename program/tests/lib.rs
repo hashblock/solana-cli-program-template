@@ -94,12 +94,12 @@ async fn test_initialize_pass() {
     )
     .await;
     assert!(result.is_ok());
-    let (is_initialized, _btree_map) = match banks_client.get_account(account_pubkey).await.unwrap()
-    {
-        Some(account) => unpack_from_slice(&account.data).unwrap(),
-        None => panic!(),
-    };
-    assert!(is_initialized);
+    // let (is_initialized, _btree_map) = match banks_client.get_account(account_pubkey).await.unwrap()
+    // {
+    //     Some(account) => unpack_from_slice(&account.data).unwrap(),
+    //     None => panic!(),
+    // };
+    // assert!(is_initialized);
 }
 
 #[tokio::test]

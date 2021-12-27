@@ -20,7 +20,7 @@ use {
 #[test]
 fn test_initialization_pass() {
     let (test_validator, _initial_keypair) = clean_ledger_setup_validator().start();
-    let (rpc_client, _, _) = test_validator.rpc_client();
+    let rpc_client = test_validator.get_rpc_client();
     let cc = CommitmentConfig::confirmed();
     let acc = get_account_for(&rpc_client, &PROG_KEY.pubkey(), cc);
     assert!(acc.is_some());
@@ -29,7 +29,7 @@ fn test_initialization_pass() {
 #[test]
 fn test_wallet_loading_pass() {
     let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
-    let (rpc_client, _, _) = test_validator.rpc_client();
+    let rpc_client = test_validator.get_rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
     assert_eq!(loaded_wallets.len(), 3);
@@ -38,7 +38,7 @@ fn test_wallet_loading_pass() {
 #[test]
 fn test_wallet_and_account_initialization_pass() {
     let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
-    let (rpc_client, _, _) = test_validator.rpc_client();
+    let rpc_client = test_validator.get_rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
     assert_eq!(loaded_wallets.len(), 3);
@@ -54,7 +54,7 @@ fn test_wallet_and_account_initialization_pass() {
 #[test]
 fn test_load_mint_transfer_burn_no_fee_pass() {
     let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
-    let (rpc_client, _, _) = test_validator.rpc_client();
+    let rpc_client = test_validator.get_rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
     assert_eq!(loaded_wallets.len(), 3);
@@ -126,7 +126,7 @@ fn test_load_mint_transfer_burn_no_fee_pass() {
 #[test]
 fn test_load_mint_transfer_burn_with_fee_pass() {
     let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
-    let (rpc_client, _, _) = test_validator.rpc_client();
+    let rpc_client = test_validator.get_rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
     assert_eq!(loaded_wallets.len(), 3);
@@ -226,7 +226,7 @@ fn test_load_mint_transfer_burn_with_fee_pass() {
 #[test]
 fn test_mint_transfer_burn_fail() {
     let (test_validator, funding_keypair) = clean_ledger_setup_validator().start();
-    let (rpc_client, _, _) = test_validator.rpc_client();
+    let rpc_client = test_validator.get_rpc_client();
     let cc = CommitmentConfig::confirmed();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, cc);
     assert_eq!(loaded_wallets.len(), 3);

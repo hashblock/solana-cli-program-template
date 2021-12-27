@@ -11,13 +11,18 @@ export const user2AccountWallet = "/keys/accounts/user2_wallet.json";
 
 /**
  * Load (read) a file
- * @param path
- * @returns {Promise<string>} - string
+ * @param {string} path - to file
+ * @returns {Promise<string>} - Json string
  */
 export async function get_file_content(path: string): Promise<Result<string, Error>> {
     return Ok(await fs.promises.readFile(path, 'utf8'))
 }
 
+/**
+ * Load (read) a Keypair from file
+ * @param {string} path - to file
+ * @returns {Promise<Result<Keypair, Error>>} - Keypair or Error
+ */
 export async function get_as_keys(path: string): Promise<Result<Keypair, Error>> {
     const secretKeyString = (await get_file_content(path));
     if (secretKeyString.ok) {
@@ -26,9 +31,9 @@ export async function get_as_keys(path: string): Promise<Result<Keypair, Error>>
 }
 
 /**
- * Returns load (read) file as PublicKey
- * @param path
- * @return {Promise<PublicKey>} - PublicKey
+ * Load (read) a PublicKey from Keypair from file
+ * @param {string} path - to file
+ * @return {Promise<Result<PublicKey, Error>>} - PublicKey or Error
  */
 export async function get_as_pubkey(path: string): Promise<Result<PublicKey, Error>> {
     const secretKeyString = await get_as_keys(path);

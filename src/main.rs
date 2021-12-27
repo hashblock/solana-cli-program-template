@@ -243,7 +243,7 @@ mod test {
     #[test]
     fn test_ping() {
         let (test_validator, payer) = TestValidatorGenesis::default().start();
-        let (rpc_client, _recent_blockhash, _fee_calculator) = test_validator.rpc_client();
+        let rpc_client = test_validator.get_rpc_client();
 
         assert!(matches!(
             ping_instruction(&rpc_client, &payer, CommitmentConfig::confirmed()),
