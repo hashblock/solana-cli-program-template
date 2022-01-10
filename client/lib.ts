@@ -62,7 +62,7 @@ const dataSchema = new Map([
 /**
  * Fetch program account data
  * @param {Connection} connection - Solana RPC connection
- * @param {PublicKey} wallet - Account public key to fetch data state from
+ * @param {PublicKey} account - Account public key to fetch data state from
  * @return {Promise<AccoundData>} - Deserialized Account Data
  */
 export async function getAccountData(
