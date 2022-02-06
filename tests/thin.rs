@@ -21,7 +21,7 @@ pub mod common;
 use {
     cli_program_template::prelude::{
         burn_instruction, get_account_for, mint_transaction, transfer_instruction,
-        unpack_account_data, Instructions, KEYS_DB, PROG_KEY,
+        unpack_account_data, KEYS_DB, PROG_KEY,
     },
     common::{load_and_initialize_accounts, load_user_wallets, rpc_client_from_config},
     solana_sdk::{instruction::AccountMeta, signer::Signer},
@@ -53,11 +53,7 @@ fn test_wallet_and_account_initialization_pass() {
     let (rpc_client, funding_keypair) = rpc_client_from_config().unwrap();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, rpc_client.commitment());
     assert_eq!(loaded_wallets.len(), 3);
-    let initialized_accounts = load_and_initialize_accounts(
-        &rpc_client,
-        Instructions::InitializeAccount as u8,
-        rpc_client.commitment(),
-    );
+    let initialized_accounts = load_and_initialize_accounts(&rpc_client, rpc_client.commitment());
     assert_eq!(initialized_accounts.len(), 3);
     for account in initialized_accounts {
         let (initialized, _) =
@@ -70,11 +66,7 @@ fn test_load_mint_transfer_burn_no_fee_pass() {
     let (rpc_client, funding_keypair) = rpc_client_from_config().unwrap();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, rpc_client.commitment());
     assert_eq!(loaded_wallets.len(), 3);
-    let initialized_accounts = load_and_initialize_accounts(
-        &rpc_client,
-        Instructions::InitializeAccount as u8,
-        rpc_client.commitment(),
-    );
+    let initialized_accounts = load_and_initialize_accounts(&rpc_client, rpc_client.commitment());
     assert_eq!(initialized_accounts.len(), 3);
     // Setup key/value data and get accounts used in transactions
     let user1 = String::from("User1");
@@ -94,7 +86,6 @@ fn test_load_mint_transfer_burn_no_fee_pass() {
         wallet1,
         &mint_key,
         &mint_value,
-        Instructions::FreeMint as u8,
         rpc_client.commitment(),
     );
     assert!(mint_result.is_ok());
@@ -111,7 +102,6 @@ fn test_load_mint_transfer_burn_no_fee_pass() {
         ],
         wallet1,
         &mint_key,
-        Instructions::FreeTransfer as u8,
         rpc_client.commitment(),
     );
     assert!(transfer_result.is_ok());
@@ -130,7 +120,6 @@ fn test_load_mint_transfer_burn_no_fee_pass() {
         ],
         wallet2,
         &mint_key,
-        Instructions::FreeBurn as u8,
         rpc_client.commitment(),
     );
     assert!(burn_result.is_ok());
@@ -143,11 +132,7 @@ fn test_mint_transfer_burn_fail() {
     let (rpc_client, funding_keypair) = rpc_client_from_config().unwrap();
     let loaded_wallets = load_user_wallets(&rpc_client, &funding_keypair, rpc_client.commitment());
     assert_eq!(loaded_wallets.len(), 3);
-    let initialized_accounts = load_and_initialize_accounts(
-        &rpc_client,
-        Instructions::InitializeAccount as u8,
-        rpc_client.commitment(),
-    );
+    let initialized_accounts = load_and_initialize_accounts(&rpc_client, rpc_client.commitment());
     assert_eq!(initialized_accounts.len(), 3);
     // Setup key/value data and get accounts used in transactions
     let user1 = String::from("User1");
@@ -165,7 +150,6 @@ fn test_mint_transfer_burn_fail() {
         wallet1,
         &mint_key,
         &mint_value,
-        Instructions::FreeMint as u8,
         rpc_client.commitment(),
     );
     assert!(mint_result.is_err());
@@ -180,7 +164,6 @@ fn test_mint_transfer_burn_fail() {
         wallet1,
         &mint_key,
         &mint_value,
-        Instructions::FreeMint as u8,
         rpc_client.commitment(),
     );
     assert!(mint_result.is_ok());
@@ -197,7 +180,6 @@ fn test_mint_transfer_burn_fail() {
         wallet1,
         &mint_key,
         &mint_value,
-        Instructions::FreeMint as u8,
         rpc_client.commitment(),
     );
     assert!(mint_result.is_err());
@@ -212,7 +194,6 @@ fn test_mint_transfer_burn_fail() {
         ],
         wallet1,
         &bad_key,
-        Instructions::FreeTransfer as u8,
         rpc_client.commitment(),
     );
     assert!(transfer_result.is_err());
@@ -226,7 +207,6 @@ fn test_mint_transfer_burn_fail() {
         ],
         wallet2,
         &mint_key,
-        Instructions::FreeBurn as u8,
         rpc_client.commitment(),
     );
     assert!(burn_result.is_err());

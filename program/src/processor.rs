@@ -198,23 +198,22 @@ pub fn process(
         return Err(error);
     }
     // Unpack the inbound data, mapping instruction to appropriate structure
-    let instruction = ProgramInstruction::unpack(instruction_data)?;
-    match instruction {
+    match ProgramInstruction::unpack(instruction_data)? {
         ProgramInstruction::InitializeAccount => initialize_account(accounts),
-        ProgramInstruction::MintToAccount { key, value } => {
+        ProgramInstruction::MintToAccount(key, value) => {
             mint_keypair_to_account(accounts, key, value)
         }
-        ProgramInstruction::TransferBetweenAccounts { key } => {
+        ProgramInstruction::TransferBetweenAccounts(key) => {
             transfer_keypair_to_account(accounts, key)
         }
-        ProgramInstruction::BurnFromAccount { key } => burn_keypair_from_account(accounts, key),
-        ProgramInstruction::MintToAccountWithFee { key, value } => {
+        ProgramInstruction::BurnFromAccount(key) => burn_keypair_from_account(accounts, key),
+        ProgramInstruction::MintToAccountWithFee(key, value) => {
             mint_keypair_to_account_with_fee(accounts, key, value)
         }
-        ProgramInstruction::TransferBetweenAccountsWithFee { key } => {
+        ProgramInstruction::TransferBetweenAccountsWithFee(key) => {
             transfer_keypair_to_account_with_fee(accounts, key)
         }
-        ProgramInstruction::BurnFromAccountWithFee { key } => {
+        ProgramInstruction::BurnFromAccountWithFee(key) => {
             burn_keypair_from_account_with_fee(accounts, key)
         }
     }

@@ -7,7 +7,7 @@ publish = false
 
 [dependencies]
 arrayref = "0.3.6"
-borsh = "0.9.1"
+borsh = "0.9.3"
 solana-program = "1.9.4"
 
 [dev-dependencies]

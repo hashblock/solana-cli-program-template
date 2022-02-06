@@ -1,8 +1,7 @@
 //! Transaction testing and debugging
 
-use borsh::BorshSerialize;
 use sol_template_shared::{unpack_from_slice, ACCOUNT_STATE_SPACE};
-use solana_cli_template_program_bpf::processor::process;
+use solana_cli_template_program_bpf::{instruction::ProgramInstruction, processor::process};
 use solana_program::hash::Hash;
 use solana_program_test::*;
 use solana_sdk::{
@@ -13,12 +12,6 @@ use solana_sdk::{
     transaction::Transaction,
     transport::TransportError,
 };
-#[derive(BorshSerialize)]
-pub struct Payload<'a> {
-    variant: u8,
-    key: &'a str,
-    value: &'a str,
-}
 
 /// Sets up the Program test and initializes 'n' program_accounts
 async fn setup(program_id: &Pubkey, program_accounts: &[Pubkey]) -> (BanksClient, Keypair, Hash) {
@@ -45,7 +38,7 @@ async fn setup(program_id: &Pubkey, program_accounts: &[Pubkey]) -> (BanksClient
 #[allow(clippy::ptr_arg)]
 async fn submit_txn(
     program_id: &Pubkey,
-    instruction_data: &Payload<'_>,
+    instruction_data: ProgramInstruction,
     accounts: &[AccountMeta],
     payer: &dyn Signer,
     recent_blockhash: Hash,
@@ -54,7 +47,7 @@ async fn submit_txn(
     let mut transaction = Transaction::new_with_payer(
         &[Instruction::new_with_borsh(
             *program_id,
-            instruction_data,
+            &instruction_data,
             accounts.to_vec(),
         )],
         Some(&payer.pubkey()),
@@ -79,14 +72,9 @@ async fn test_initialize_pass() {
         None => panic!(),
     };
     assert!(!is_initialized);
-    let instruction_data = Payload {
-        variant: 0,
-        key: "",
-        value: "",
-    };
     let result = submit_txn(
         &program_id,
-        &instruction_data,
+        ProgramInstruction::InitializeAccount,
         &[AccountMeta::new(account_pubkey, false)],
         &payer,
         recent_blockhash,
@@ -94,12 +82,6 @@ async fn test_initialize_pass() {
     )
     .await;
     assert!(result.is_ok());
-    // let (is_initialized, _btree_map) = match banks_client.get_account(account_pubkey).await.unwrap()
-    // {
-    //     Some(account) => unpack_from_slice(&account.data).unwrap(),
-    //     None => panic!(),
-    // };
-    // assert!(is_initialized);
 }
 
 #[tokio::test]
@@ -111,15 +93,9 @@ async fn test_mint_pass() {
     // Setup runtime testing and accounts
     let (mut banks_client, payer, recent_blockhash) = setup(&program_id, &[account_pubkey]).await;
 
-    // Initialize the account
-    let instruction_data = Payload {
-        variant: 0,
-        key: "",
-        value: "",
-    };
     let result = submit_txn(
         &program_id,
-        &instruction_data,
+        ProgramInstruction::InitializeAccount,
         &[AccountMeta::new(account_pubkey, false)],
         &payer,
         recent_blockhash,
@@ -131,15 +107,10 @@ async fn test_mint_pass() {
     // Do mint
     let mint_key = String::from("test_key_1");
     let mint_value = String::from("value for test_key_1");
-    let instruction_data = Payload {
-        variant: 1u8,
-        key: "test_key_1",
-        value: "value for test_key_1",
-    };
 
     let result = submit_txn(
         &program_id,
-        &instruction_data,
+        ProgramInstruction::MintToAccount(mint_key.clone(), mint_value.clone()),
         &[AccountMeta::new(account_pubkey, false)],
         &payer,
         recent_blockhash,
@@ -169,45 +140,26 @@ async fn test_mint_transfer_pass() {
     let (mut banks_client, payer, recent_blockhash) =
         setup(&program_id, &[start_pubkey, target_pubkey]).await;
 
-    // Initialize the account(s)
-    let instruction_data = Payload {
-        variant: 0u8,
-        key: "",
-        value: "",
-    };
+    for acc_key in [&start_pubkey, &target_pubkey] {
+        let result = submit_txn(
+            &program_id,
+            ProgramInstruction::InitializeAccount,
+            &[AccountMeta::new(*acc_key, false)],
+            &payer,
+            recent_blockhash,
+            &mut banks_client,
+        )
+        .await;
+        assert!(result.is_ok());
+    }
 
-    let result = submit_txn(
-        &program_id,
-        &instruction_data,
-        &[AccountMeta::new(start_pubkey, false)],
-        &payer,
-        recent_blockhash,
-        &mut banks_client,
-    )
-    .await;
-    assert!(result.is_ok());
-    let result = submit_txn(
-        &program_id,
-        &instruction_data,
-        &[AccountMeta::new(target_pubkey, false)],
-        &payer,
-        recent_blockhash,
-        &mut banks_client,
-    )
-    .await;
-    assert!(result.is_ok());
     let mint_key = String::from("test_key_1");
     let mint_value = String::from("value for test_key_1");
-    // Do mint
-    let instruction_data = Payload {
-        variant: 1u8,
-        key: &mint_key,
-        value: &mint_value,
-    };
 
+    // Do mint
     let result = submit_txn(
         &program_id,
-        &instruction_data,
+        ProgramInstruction::MintToAccount(mint_key.clone(), mint_value.clone()),
         &[AccountMeta::new(start_pubkey, false)],
         &payer,
         recent_blockhash,
@@ -217,14 +169,9 @@ async fn test_mint_transfer_pass() {
     assert!(result.is_ok());
 
     // Do transfer
-    let instruction_data = Payload {
-        variant: 2u8,
-        key: &mint_key,
-        value: "",
-    };
     let result = submit_txn(
         &program_id,
-        &instruction_data,
+        ProgramInstruction::TransferBetweenAccounts(mint_key.clone()),
         &[
             AccountMeta::new(start_pubkey, false),
             AccountMeta::new(target_pubkey, false),
@@ -262,47 +209,27 @@ async fn test_mint_transfer_burn_pass() {
     // Setup runtime testing and accounts
     let (mut banks_client, payer, recent_blockhash) =
         setup(&program_id, &[start_pubkey, target_pubkey]).await;
-
-    // Initialize the account(s)
-    let instruction_data = Payload {
-        variant: 0u8,
-        key: "",
-        value: "",
-    };
-
-    let result = submit_txn(
-        &program_id,
-        &instruction_data,
-        &[AccountMeta::new(start_pubkey, false)],
-        &payer,
-        recent_blockhash,
-        &mut banks_client,
-    )
-    .await;
-    assert!(result.is_ok());
-    let result = submit_txn(
-        &program_id,
-        &instruction_data,
-        &[AccountMeta::new(target_pubkey, false)],
-        &payer,
-        recent_blockhash,
-        &mut banks_client,
-    )
-    .await;
-    assert!(result.is_ok());
+    for acc_key in [&start_pubkey, &target_pubkey] {
+        let result = submit_txn(
+            &program_id,
+            ProgramInstruction::InitializeAccount,
+            &[AccountMeta::new(*acc_key, false)],
+            &payer,
+            recent_blockhash,
+            &mut banks_client,
+        )
+        .await;
+        assert!(result.is_ok());
+    }
 
     // Do mint
     let mint_key = String::from("test_key_1");
     let mint_value = String::from("value for test_key_1");
-    let instruction_data = Payload {
-        variant: 1u8,
-        key: &mint_key,
-        value: &mint_value,
-    };
 
+    // Do mint
     let result = submit_txn(
         &program_id,
-        &instruction_data,
+        ProgramInstruction::MintToAccount(mint_key.clone(), mint_value.clone()),
         &[AccountMeta::new(start_pubkey, false)],
         &payer,
         recent_blockhash,
@@ -312,15 +239,9 @@ async fn test_mint_transfer_burn_pass() {
     assert!(result.is_ok());
 
     // Do transfer
-    let instruction_data = Payload {
-        variant: 2u8,
-        key: &mint_key,
-        value: "",
-    };
-
     let result = submit_txn(
         &program_id,
-        &instruction_data,
+        ProgramInstruction::TransferBetweenAccounts(mint_key.clone()),
         &[
             AccountMeta::new(start_pubkey, false),
             AccountMeta::new(target_pubkey, false),
@@ -332,16 +253,10 @@ async fn test_mint_transfer_burn_pass() {
     .await;
     assert!(result.is_ok());
 
-    // Do the burn
-    let instruction_data = Payload {
-        variant: 3u8,
-        key: &mint_key,
-        value: "",
-    };
-
+    // Do burn
     let result = submit_txn(
         &program_id,
-        &instruction_data,
+        ProgramInstruction::BurnFromAccount(mint_key.clone()),
         &[AccountMeta::new(target_pubkey, false)],
         &payer,
         recent_blockhash,

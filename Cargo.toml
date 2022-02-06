@@ -6,11 +6,12 @@ license = "WTFPL"
 publish = false
 
 [dependencies]
-borsh = "0.9.1"
+borsh = "0.9.3"
 clap = "2.33.3"
 lazy_static = "1.4.0"
 serde = { version = "1.0.125", features = ["derive"] }
 serde_yaml = "0.8.17"
+solana-cli-template-program-bpf = {path = "program"}
 sol-template-shared = {path = "shared"}
 solana-clap-utils = "1.9.4"
 solana-cli-config = "1.9.4"

@@ -3,7 +3,7 @@
 use {
     cli_program_template::prelude::{
         burn_instruction, load_account, load_wallet, mint_transaction, ping_instruction,
-        transfer_instruction, unpack_account_data, Instructions, KEYS_DB, PROG_KEY,
+        transfer_instruction, unpack_account_data, KEYS_DB, PROG_KEY,
     },
     clparse::parse_command_line,
     sol_template_shared::ACCOUNT_STATE_SPACE,
@@ -57,7 +57,6 @@ fn validate_user_accounts_and_load<'a>(
         wallet,
         &PROG_KEY.pubkey(),
         ACCOUNT_STATE_SPACE as u64,
-        Instructions::InitializeAccount as u8,
         commitment_config,
     )?;
     Ok((wallet, account))
@@ -146,7 +145,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 wallet,
                 key,
                 &value,
-                Instructions::FreeMint as u8,
                 config.commitment_config,
             )?;
             let (_, btree) = unpack_account_data(&rpc_client, account, config.commitment_config)?;
@@ -180,7 +178,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ],
                 from_wallet,
                 key,
-                Instructions::FreeTransfer as u8,
                 config.commitment_config,
             )?;
             let (_, btree) =
@@ -209,7 +206,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ],
                 wallet,
                 key,
-                Instructions::FreeBurn as u8,
                 config.commitment_config,
             )?;
             let (_, btree) = unpack_account_data(&rpc_client, account, config.commitment_config)?;

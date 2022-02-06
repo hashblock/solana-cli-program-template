@@ -1,50 +1,33 @@
 //! instruction Contains the main ProgramInstruction enum
 
-use {
-    crate::error::SampleError, borsh::BorshDeserialize, solana_program::program_error::ProgramError,
-};
+use borsh::{BorshDeserialize, BorshSerialize};
+use solana_program::{borsh::try_from_slice_unchecked, program_error::ProgramError};
 
-#[derive(Debug, PartialEq)]
+#[derive(BorshDeserialize, BorshSerialize, Debug, PartialEq)]
 /// All custom program instructions
 pub enum ProgramInstruction {
     InitializeAccount,
-    MintToAccount { key: String, value: String },
-    TransferBetweenAccounts { key: String },
-    BurnFromAccount { key: String },
-    MintToAccountWithFee { key: String, value: String },
-    TransferBetweenAccountsWithFee { key: String },
-    BurnFromAccountWithFee { key: String },
-}
-
-/// Generic Payload Deserialization
-#[derive(BorshDeserialize, Debug)]
-struct Payload {
-    variant: u8,
-    arg1: String,
-    arg2: String,
+    MintToAccount(String, String),
+    TransferBetweenAccounts(String),
+    BurnFromAccount(String),
+    MintToAccountWithFee(String, String),
+    TransferBetweenAccountsWithFee(String),
+    BurnFromAccountWithFee(String),
 }
 
 impl ProgramInstruction {
     /// Unpack inbound buffer to associated Instruction
     /// The expected format for input is a Borsh serialized vector
     pub fn unpack(input: &[u8]) -> Result<Self, ProgramError> {
-        let payload = Payload::try_from_slice(input).unwrap();
-        // let block = Vec::<Vec<u8>>::try_from_slice(input).unwrap();
-        match payload.variant {
-            0 => Ok(ProgramInstruction::InitializeAccount),
-            1 => Ok(Self::MintToAccount {
-                key: payload.arg1,
-                value: payload.arg2,
-            }),
-            2 => Ok(Self::TransferBetweenAccounts { key: payload.arg1 }),
-            3 => Ok(Self::BurnFromAccount { key: payload.arg1 }),
-            4 => Ok(Self::MintToAccountWithFee {
-                key: payload.arg1,
-                value: payload.arg2,
-            }),
-            5 => Ok(Self::TransferBetweenAccountsWithFee { key: payload.arg1 }),
-            6 => Ok(Self::BurnFromAccountWithFee { key: payload.arg1 }),
-            _ => Err(SampleError::DeserializationFailure.into()),
+        let payload = try_from_slice_unchecked::<ProgramInstruction>(input).unwrap();
+        match payload {
+            ProgramInstruction::InitializeAccount => Ok(payload),
+            ProgramInstruction::MintToAccount(_, _) => Ok(payload),
+            ProgramInstruction::TransferBetweenAccounts(_) => Ok(payload),
+            ProgramInstruction::BurnFromAccount(_) => Ok(payload),
+            ProgramInstruction::MintToAccountWithFee(_, _) => Ok(payload),
+            ProgramInstruction::TransferBetweenAccountsWithFee(_) => Ok(payload),
+            ProgramInstruction::BurnFromAccountWithFee(_) => Ok(payload),
         }
     }
 }

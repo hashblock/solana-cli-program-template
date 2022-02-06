@@ -60,7 +60,6 @@ pub fn load_user_wallets<'a>(
 /// Batch load all user wallets and accounts (User1, User2, Service)
 pub fn load_and_initialize_accounts<'a>(
     rpc_client: &RpcClient,
-    initialize_instruction: u8,
     commitment_config: CommitmentConfig,
 ) -> Vec<&'a Keypair> {
     let mut accounts = Vec::<&Keypair>::new();
@@ -76,7 +75,6 @@ pub fn load_and_initialize_accounts<'a>(
                 wallet,
                 &PROG_KEY.pubkey(),
                 ACCOUNT_STATE_SPACE as u64,
-                initialize_instruction,
                 commitment_config,
             );
             assert!(result.is_ok());

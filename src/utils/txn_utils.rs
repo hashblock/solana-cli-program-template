@@ -1,8 +1,9 @@
 //! @brief Transaction utilities
 
+use solana_cli_template_program_bpf::instruction::ProgramInstruction;
+
 use {
     crate::utils::keys_db::PROG_KEY,
-    borsh::*,
     solana_client::rpc_client::RpcClient,
     solana_sdk::{
         account::Account,
@@ -16,13 +17,6 @@ use {
         transaction::Transaction,
     },
 };
-
-#[derive(BorshSerialize)]
-pub struct Payload<'a> {
-    variant: u8,
-    key: &'a str,
-    value: &'a str,
-}
 
 /// Checks for existence of account
 fn account_for_key(
@@ -103,18 +97,11 @@ fn new_account(
     account_pair: &dyn Signer,
     program_owner: &Pubkey,
     state_space: u64,
-    initialize_instruction_id: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let account_lamports = rpc_client
         .get_minimum_balance_for_rent_exemption(state_space as usize)
         .unwrap();
-
-    let instruction_data = Payload {
-        variant: initialize_instruction_id,
-        key: "",
-        value: "",
-    };
 
     let mut transaction = Transaction::new_with_payer(
         &[
@@ -127,7 +114,7 @@ fn new_account(
             ),
             Instruction::new_with_borsh(
                 *program_owner,
-                &instruction_data,
+                &ProgramInstruction::InitializeAccount,
                 vec![
                     AccountMeta::new(account_pair.pubkey(), false),
                     AccountMeta::new(wallet_signer.pubkey(), false),
@@ -164,7 +151,6 @@ pub fn load_account(
     wallet_signer: &dyn Signer,
     program_owner: &Pubkey,
     space: u64,
-    initialize_instruction: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<(), Box<dyn std::error::Error>> {
     match get_account_for(rpc_client, &account_pair.pubkey(), commitment_config) {
@@ -175,7 +161,6 @@ pub fn load_account(
             account_pair,
             program_owner,
             space,
-            initialize_instruction,
             commitment_config,
         )
         .unwrap(),
@@ -212,15 +197,13 @@ pub fn mint_transaction(
     wallet_signer: &dyn Signer,
     mint_key: &str,
     mint_value: &str,
-    mint_instruction_id: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<Signature, Box<dyn std::error::Error>> {
-    let data = Payload {
-        variant: mint_instruction_id,
-        key: mint_key,
-        value: mint_value,
-    };
-    let instruction = Instruction::new_with_borsh(PROG_KEY.pubkey(), &data, accounts.to_vec());
+    let instruction = Instruction::new_with_borsh(
+        PROG_KEY.pubkey(),
+        &ProgramInstruction::MintToAccount(mint_key.to_string(), mint_value.to_string()),
+        accounts.to_vec(),
+    );
     submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)
 }
 
@@ -230,15 +213,13 @@ pub fn transfer_instruction(
     accounts: &[AccountMeta],
     wallet_signer: &dyn Signer,
     transfer_key: &str,
-    transfer_instruction_id: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<Signature, Box<dyn std::error::Error>> {
-    let data = Payload {
-        variant: transfer_instruction_id,
-        key: transfer_key,
-        value: "",
-    };
-    let instruction = Instruction::new_with_borsh(PROG_KEY.pubkey(), &data, accounts.to_vec());
+    let instruction = Instruction::new_with_borsh(
+        PROG_KEY.pubkey(),
+        &ProgramInstruction::TransferBetweenAccounts(transfer_key.to_string()),
+        accounts.to_vec(),
+    );
     submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)
 }
 
@@ -248,16 +229,13 @@ pub fn burn_instruction(
     accounts: &[AccountMeta],
     wallet_signer: &dyn Signer,
     burn_key: &str,
-    burn_instruction_id: u8,
     commitment_config: CommitmentConfig,
 ) -> Result<Signature, Box<dyn std::error::Error>> {
-    let data = Payload {
-        variant: burn_instruction_id,
-        key: burn_key,
-        value: "",
-    };
-
-    let instruction = Instruction::new_with_borsh(PROG_KEY.pubkey(), &data, accounts.to_vec());
+    let instruction = Instruction::new_with_borsh(
+        PROG_KEY.pubkey(),
+        &ProgramInstruction::BurnFromAccount(burn_key.to_string()),
+        accounts.to_vec(),
+    );
     submit_transaction(rpc_client, wallet_signer, instruction, commitment_config)
 }
 
@@ -273,56 +251,4 @@ pub fn ping_instruction(
         system_instruction::transfer(&signer.pubkey(), &signer.pubkey(), amount),
         commitment_config,
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use borsh::{BorshDeserialize, BorshSerialize};
-    #[test]
-    fn test_borsh_stuff() {
-        #[derive(BorshSerialize)]
-        struct Payload<'a> {
-            variant: u8,
-            key: &'a str,
-            value: &'a str,
-        }
-        #[derive(BorshDeserialize, Debug)]
-        #[allow(dead_code)]
-        struct InBound {
-            variant: u8,
-            arg1: String,
-            arg2: String,
-        }
-        let data_mint = Payload {
-            variant: 1,
-            key: "key",
-            value: "value",
-        };
-        let faux_transfer = Payload {
-            variant: 2,
-            key: "key",
-            value: "",
-        };
-
-        let faux_burn = Payload {
-            variant: 3,
-            key: "key",
-            value: "",
-        };
-
-        let mser = data_mint.try_to_vec().unwrap();
-        println!("Mint {:?}", mser);
-        let mdser = InBound::try_from_slice(&mser).unwrap();
-        println!("Unmint {:?}", mdser);
-
-        let mser = faux_transfer.try_to_vec().unwrap();
-        println!("Transfer {:?}", mser);
-        let mdser = InBound::try_from_slice(&mser).unwrap();
-        println!("Untransfer {:?}", mdser);
-
-        let mser = faux_burn.try_to_vec().unwrap();
-        println!("Burn {:?}", mser);
-        let mdser = InBound::try_from_slice(&mser).unwrap();
-        println!("Unburn {:?}", mdser);
-    }
 }

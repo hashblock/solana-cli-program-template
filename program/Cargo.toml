@@ -10,7 +10,7 @@ license = "WTFPL"
 no-entrypoint = []
 
 [dependencies]
-borsh = "0.9.1"
+borsh = "0.9.3"
 lazy_static = "1.4.0"
 num-derive = "0.3"
 num_enum = "0.5.1"
