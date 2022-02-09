@@ -2,7 +2,7 @@
 The sample program is intended to provide a fundemental frame for your own programs.
 
 ## General Anatomy of a Solana Program
-Solana programs using, but are not required, use a common modular approach by breaking
+Solana programs use, but are not required, a common modular approach by breaking
 up the semantics of a program into separate source files and folders.
 
 1. `program/entry_point.rs` - This is the entry point when an instruction is sent to a specific program (yours), typically delegating the 3 arguments to a main dispatching function in...
