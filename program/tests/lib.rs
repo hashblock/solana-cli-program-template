@@ -43,7 +43,7 @@ async fn submit_txn(
     payer: &dyn Signer,
     recent_blockhash: Hash,
     banks_client: &mut BanksClient,
-) -> Result<(), TransportError> {
+) -> Result<(), BanksClientError> {
     let mut transaction = Transaction::new_with_payer(
         &[Instruction::new_with_borsh(
             *program_id,
