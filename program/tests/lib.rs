@@ -10,7 +10,6 @@ use solana_sdk::{
     pubkey::Pubkey,
     signature::{Keypair, Signer},
     transaction::Transaction,
-    transport::TransportError,
 };
 
 /// Sets up the Program test and initializes 'n' program_accounts
