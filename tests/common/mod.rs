@@ -11,7 +11,7 @@ use {
         signature::{read_keypair_file, Keypair},
         signer::Signer,
     },
-    solana_validator::test_validator::TestValidatorGenesis,
+    solana_test_validator::TestValidatorGenesis,
     std::{path::PathBuf, str::FromStr},
 };
 

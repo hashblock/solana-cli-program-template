@@ -234,7 +234,7 @@ mod test {
     use borsh::{BorshDeserialize, BorshSerialize};
     use solana_sdk::pubkey::Pubkey;
 
-    use {super::*, solana_validator::test_validator::*};
+    use {super::*, solana_test_validator::*};
 
     #[test]
     fn test_ping() {
