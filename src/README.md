@@ -21,7 +21,7 @@ A functional macro level view
 3. If running the integration tests or Mint, Transfer, Burn instructions:
   ```
   cd program
-  cargo build-bpf
+  cargo build-sbf
   cd ..
   ```
 4. `cargo run help`

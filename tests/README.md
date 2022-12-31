@@ -8,7 +8,7 @@ If you want to add more keys, follow the examples given and don't forget to upda
 * Program: The sample program is in `program/`. Prior to running the tests make sure you:
 ```
 cd program
-cargo build-bpf
+cargo build-sbf
 cd ..
 ```
 * Tests: The idea of the integration tests is to offer modularized scenarios. These are represented by the different modules in the `tests/` folder.

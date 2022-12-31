@@ -42,10 +42,10 @@ All fee's debited are credited to the "service" account
 ## Building
 ```
 cd program
-cargo build-bpf
+cargo build-sbf
 ```
 ## Unit Testing
 ```
 cd program
-cargo test-bpf -- --test-threads=1 --nocapture
+cargo test-sbf -- --test-threads=1 --nocapture
 ```
